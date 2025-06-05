@@ -23,6 +23,7 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showLoginForm, setShowLoginForm] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -51,6 +52,24 @@ export default function Home() {
     }
   };
 
+  const handleSignUp = async () => {
+
+    const { error } = await supabase.auth.signUp({ email, password });
+
+    if (error) {
+
+      alert("Signup error: " + error.message);
+
+    } else {
+
+      alert("Signup successful! Check your email to confirm.");
+
+      setIsSignUp(false);
+
+    }
+
+  };
+
   const handleForgotPassword = async () => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`
@@ -72,17 +91,17 @@ export default function Home() {
       <header className="bg-white shadow p-4 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-blue-600">ReferralHub</h1>
         <nav className="space-x-4">
-          <Link href="/">
-            <a className="text-gray-700 hover:text-blue-600">Home
-            </a>
+          <Link href="/" className="text-gray-700 hover:text-blue-600">
+            Home
+
           </Link>
           {user && (
             <>
-              <Link href="/submit">
-                <a className="text-gray-700 hover:text-blue-600">Submit</a>
+              <Link href="/submit" className="text-gray-700 hover:text-blue-600">
+                Submit
               </Link>
-              <Link href="/profile">
-                <a className="text-gray-700 hover:text-blue-600">Profile</a>
+              <Link href="/profile" className="text-gray-700 hover:text-blue-600">
+                Profile
               </Link>
             </>
           )}
@@ -90,13 +109,12 @@ export default function Home() {
         {user ? (
           <button onClick={handleLogout} className="text-sm bg-red-500 text-white px-3 py-1 rounded">Logout</button>
         ) : (
-          <button onClick={() => setShowLoginForm(!showLoginForm)} className="text-sm bg-blue-500 text-white px-3 py-1 rounded">Login</button>
+          <button onClick={() => setShowLoginForm(!showLoginForm)} className="text-sm bg-blue-500 text-white px-3 py-1 rounded">Login / Sign Up</button>
         )}
       </header>
-
       {showLoginForm && (
         <div className="p-4 max-w-md mx-auto bg-white rounded shadow my-4">
-          <h3 className="text-lg font-semibold mb-2">Login with Email</h3>
+          <h3 className="text-lg font-semibold mb-2">{isSignUp ? "Sign Up" : "Login"} with Email</h3>
           <input
             type="email"
             placeholder="Email"
@@ -111,13 +129,19 @@ export default function Home() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <div className="flex justify-between">
-            <button onClick={handleEmailLogin} className="bg-blue-600 text-white px-3 py-1 rounded">Login</button>
+          <div className="flex justify-between items-center mb-2">
+            {isSignUp ? (
+              <button onClick={handleSignUp} className="bg-green-600 text-white px-3 py-1 rounded">Sign Up</button>
+            ) : (
+              <button onClick={handleEmailLogin} className="bg-blue-600 text-white px-3 py-1 rounded">Login</button>
+            )}
             <button onClick={handleForgotPassword} className="text-sm text-blue-600 underline">Forgot Password?</button>
+            <button onClick={() => setIsSignUp(!isSignUp)} className="text-sm text-gray-700 underline">
+              {isSignUp ? "Already have an account? Login" : "New user? Sign up"}
+            </button>
           </div>
         </div>
       )}
-
       <main className="p-8">
         <section className="bg-white p-6 rounded shadow-md">
           <h2 className="text-xl font-semibold mb-4">Welcome to ReferralHub</h2>
@@ -135,7 +159,6 @@ export default function Home() {
           )}
         </section>
       </main>
-
       <footer className="text-center text-sm text-gray-500 p-4">
         © 2025 ReferralHub. All rights reserved.
       </footer>
