@@ -38,10 +38,16 @@ export default function RootLayout({
             </Link>
             <div className="flex gap-4 items-center">
               <Link
+                href="/about"
+                className="hover:underline text-white hover:text-yellow-200 transition"
+              >
+                About
+              </Link>
+              <Link
                 href="/"
                 className="hover:underline text-white hover:text-yellow-200 transition"
               >
-                Home
+                Dashboard
               </Link>
               <Link
                 href="/submit"
@@ -59,12 +65,14 @@ export default function RootLayout({
                 href="/logout"
                 className="hover:underline text-red-200 hover:text-yellow-200 transition font-semibold"
               >
-                Logout
+                Login/Logout
               </Link>
             </div>
           </div>
         </nav>
-        {children}
+        <div className="transition-opacity duration-300 ease-in-out opacity-100">
+          {children}
+        </div>
       </body>
     </html>
   );

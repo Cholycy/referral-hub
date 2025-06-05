@@ -31,6 +31,9 @@ export default function Home() {
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [searchCategory, setSearchCategory] = useState("");
+  const [votes, setVotes] = useState<Record<string, { up: number; down: number }>>({});
+  const [voteLoading, setVoteLoading] = useState<Record<string, boolean>>({});
+  const [userVotes, setUserVotes] = useState<Record<string, "up" | "down" | null>>({});
 
   useEffect(() => {
     const getUser = async () => {
@@ -55,11 +58,54 @@ export default function Home() {
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    const fetchVotes = async () => {
+      if (!referrals.length) return;
+      const { data, error } = await supabase
+        .from("referral_votes")
+        .select("referral_id, up, down");
+      if (!error && data) {
+        const voteMap: Record<string, { up: number; down: number }> = {};
+        data.forEach((v: any) => {
+          voteMap[v.referral_id] = { up: v.up, down: v.down };
+        });
+        setVotes(voteMap);
+      }
+    };
+    fetchVotes();
+  }, [referrals]);
+
+  // Fetch user votes for all referrals
+  useEffect(() => {
+    const fetchUserVotes = async () => {
+      if (!user || !referrals.length) return;
+      const { data, error } = await supabase
+        .from("referral_user_votes")
+        .select("referral_id, vote_type")
+        .eq("user_id", user.id);
+      if (!error && data) {
+        const voteMap: Record<string, "up" | "down" | null> = {};
+        data.forEach((v: any) => {
+          voteMap[v.referral_id] = v.vote_type;
+        });
+        setUserVotes(voteMap);
+      }
+    };
+    fetchUserVotes();
+  }, [user, referrals]);
+
+  useEffect(() => {
+    // Prefill email from localStorage if available
+    const cachedEmail = typeof window !== 'undefined' ? localStorage.getItem('referralhub_email') : null;
+    if (cachedEmail) setEmail(cachedEmail);
+  }, []);
+
   const handleEmailLogin = async () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       alert("Login error: " + error.message);
     } else {
+      if (typeof window !== 'undefined') localStorage.setItem('referralhub_email', email);
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
       setShowLoginForm(false);
@@ -95,10 +141,50 @@ export default function Home() {
     }
   };
 
+  const handleVote = async (referralId: string, type: "up" | "down") => {
+    if (!user) return;
+    setVoteLoading((prev) => ({ ...prev, [referralId]: true }));
+    const currentVote = userVotes[referralId] || null;
+    let newVotes = { ...votes[referralId] };
+    let newUserVote: "up" | "down" | null = type;
+    if (currentVote === type) {
+      // Double click: revert vote
+      newVotes[type] = (newVotes[type] || 1) - 1;
+      newUserVote = null;
+      await supabase.from("referral_user_votes").delete().eq("referral_id", referralId).eq("user_id", user.id);
+    } else {
+      // Remove previous vote if exists
+      if (currentVote) {
+        newVotes[currentVote] = (newVotes[currentVote] || 1) - 1;
+      }
+      newVotes[type] = (newVotes[type] || 0) + 1;
+      await supabase.from("referral_user_votes").upsert({
+        referral_id: referralId,
+        user_id: user.id,
+        vote_type: type,
+      });
+    }
+    // Update aggregate votes table
+    await supabase.from("referral_votes").upsert({
+      referral_id: referralId,
+      up: newVotes.up || 0,
+      down: newVotes.down || 0,
+    });
+    setVotes((prev) => ({ ...prev, [referralId]: { up: newVotes.up || 0, down: newVotes.down || 0 } }));
+    setUserVotes((prev) => ({ ...prev, [referralId]: newUserVote }));
+    setVoteLoading((prev) => ({ ...prev, [referralId]: false }));
+  };
+
   const filteredReferrals = searchCategory
-    ? referrals.filter((ref) =>
-        ref.category && ref.category.toLowerCase().includes(searchCategory.toLowerCase())
-      )
+    ? referrals.filter((ref) => {
+        const q = searchCategory.toLowerCase();
+        return (
+          (ref.title && ref.title.toLowerCase().includes(q)) ||
+          (ref.description && ref.description.toLowerCase().includes(q)) ||
+          (ref.category && ref.category.toLowerCase().includes(q)) ||
+          (ref.url && ref.url.toLowerCase().includes(q))
+        );
+      })
     : referrals;
 
   return (
@@ -137,6 +223,7 @@ export default function Home() {
         </div>
       )}
       <main className="p-8">
+        {/* Description Section removed and moved to About page */}
         <section className="bg-white p-8 rounded-2xl shadow-xl max-w-4xl mx-auto border border-blue-100 animate-fade-in">
           <h2 className="text-3xl font-extrabold mb-6 text-blue-700 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m4 0h-1v-4h-1m4 0h-1v-4h-1m4 0h-1v-4h-1" /></svg>
@@ -146,7 +233,7 @@ export default function Home() {
             <div className="mb-6 flex flex-col md:flex-row gap-2 md:items-center">
               <input
                 type="text"
-                placeholder="Search by category..."
+                placeholder="Search by keyword..."
                 value={searchCategory}
                 onChange={(e) => setSearchCategory(e.target.value)}
                 className="w-full md:w-64 p-2 border rounded focus:ring-2 focus:ring-blue-300"
@@ -161,17 +248,47 @@ export default function Home() {
                   <div key={ref.id} className="bg-gradient-to-br from-blue-100 to-white border border-blue-200 rounded-xl shadow-md p-6 flex flex-col gap-2 hover:shadow-lg transition-shadow">
                     <div className="flex items-center gap-2 mb-1">
                       <div className="text-xl font-bold text-blue-700">{ref.title}</div>
-                      {ref.category && <span className="px-2 py-1 bg-blue-200 text-blue-800 rounded text-xs font-semibold">{ref.category}</span>}
+                      {ref.category && (
+                        <span className="px-2 py-1 bg-blue-200 text-blue-800 rounded text-xs font-semibold">
+                          {ref.category.charAt(0).toUpperCase() + ref.category.slice(1)}
+                        </span>
+                      )}
                     </div>
                     {ref.description && (
                       <div className="text-gray-700 text-base mb-1">{ref.description}</div>
                     )}
                     <div className="flex flex-wrap gap-2 text-xs text-gray-500 mt-1">
-                      {ref.expiration_date && <span className="px-2 py-1 bg-gray-200 rounded">Expires: {ref.expiration_date}</span>}
+                      {ref.expiration_date && (
+                        <span className="px-2 py-1 bg-gray-200 rounded">
+                          Expires: {new Date(ref.expiration_date.replace(' ', 'T')).toLocaleString()}
+                        </span>
+                      )}
                     </div>
                     {ref.url && (
                       <a href={ref.url} className="text-blue-600 underline break-all font-mono" target="_blank" rel="noopener noreferrer">{ref.url}</a>
                     )}
+                    <div className="flex gap-4 mt-2 items-center">
+                      <button
+                        className={`flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50 ${userVotes[ref.id]==='up' ? 'ring-2 ring-green-400' : ''}`}
+                        onClick={() => handleVote(ref.id, 'up')}
+                        onDoubleClick={() => handleVote(ref.id, 'up')}
+                        disabled={voteLoading[ref.id]}
+                        aria-label="Upvote"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+                        {votes[ref.id]?.up || 0}
+                      </button>
+                      <button
+                        className={`flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50 ${userVotes[ref.id]==='down' ? 'ring-2 ring-red-400' : ''}`}
+                        onClick={() => handleVote(ref.id, 'down')}
+                        onDoubleClick={() => handleVote(ref.id, 'down')}
+                        disabled={voteLoading[ref.id]}
+                        aria-label="Downvote"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                        {votes[ref.id]?.down || 0}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
