@@ -89,62 +89,79 @@ export default function SubmitReferral() {
   };
 
   return (
-    <div className="p-8 max-w-xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4">Submit New Referral</h2>
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow space-y-4">
-        {errorMsg && <div className="text-red-600">{errorMsg}</div>}
-        {successMsg && <div className="text-green-600">{successMsg}</div>}
-        <input
-          type="text"
-          name="title"
-          placeholder="Referral Title"
-          value={form.title}
-          onChange={handleChange}
-          required
-          maxLength={50}
-          className="w-full p-2 border rounded"
-        />
-        <textarea
-          name="description"
-          placeholder="Description"
-          value={form.description}
-          onChange={handleChange}
-          required
-          maxLength={150}
-          className="w-full p-2 border rounded"
-        ></textarea>
-        <select
-          name="category"
-          value={form.category}
-          onChange={handleChange}
-          required
-          className="w-full p-2 border rounded"
-        >
-          <option value="credit card">Credit Card</option>
-          <option value="membership">Membership</option>
-          <option value="others">Others</option>
-        </select>
-        <input
-          type="datetime-local"
-          name="expiration"
-          value={form.expiration}
-          onChange={handleChange}
-          required
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="text"
-          name="link"
-          placeholder="Referral Link"
-          value={form.link}
-          onChange={handleChange}
-          required
-          className="w-full p-2 border rounded"
-        />
-        <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded" disabled={loading}>
-          {loading ? "Submitting..." : "Submit Referral"}
-        </button>
-      </form>
-    </div>
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 p-2">
+      <section className="w-full max-w-xl bg-white/70 rounded-3xl shadow-2xl border border-blue-100 p-8 md:p-12 flex flex-col gap-6 backdrop-blur-md animate-fade-in">
+        <h1 className="text-3xl md:text-4xl font-extrabold text-blue-700 mb-2 text-center flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+          Submit a Referral
+        </h1>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <div>
+            <label htmlFor="title" className="block text-blue-800 font-semibold mb-1">Title</label>
+            <input
+              id="title"
+              name="title"
+              type="text"
+              className="w-full rounded-xl border border-blue-200 px-4 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm"
+              placeholder="e.g. Chase Sapphire Preferred"
+              value={form.title}
+              onChange={handleChange}
+              required
+              maxLength={50}
+            />
+          </div>
+          <div>
+            <label htmlFor="description" className="block text-blue-800 font-semibold mb-1">Description</label>
+            <textarea
+              id="description"
+              name="description"
+              rows={3}
+              className="w-full rounded-xl border border-blue-200 px-4 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm resize-none"
+              placeholder="Describe the referral program and benefits..."
+              value={form.description}
+              onChange={handleChange}
+              required
+              maxLength={150}
+            />
+          </div>
+          <div>
+            <label htmlFor="category" className="block text-blue-800 font-semibold mb-1">Category</label>
+            <select
+              id="category"
+              name="category"
+              className="w-full rounded-xl border border-blue-200 px-4 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm"
+              value={form.category}
+              onChange={handleChange}
+              required
+            >
+              <option value="credit card">Credit Card</option>
+              <option value="membership">Membership</option>
+              <option value="others">Others</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="url" className="block text-blue-800 font-semibold mb-1">Referral Link</label>
+            <input
+              id="url"
+              name="url"
+              type="url"
+              className="w-full rounded-xl border border-blue-200 px-4 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm"
+              placeholder="https://your-referral-link.com"
+              value={form.link}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            className="mt-2 w-full bg-gradient-to-r from-blue-600 to-blue-400 text-white font-bold py-3 rounded-xl shadow-lg hover:from-blue-700 hover:to-blue-500 hover:scale-105 transition-all text-lg flex items-center justify-center gap-2"
+            disabled={loading}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            {loading ? "Submitting..." : "Submit Referral"}
+          </button>
+        </form>
+      </section>
+    </main>
   );
 }

@@ -4,7 +4,9 @@ export default function AboutPage() {
       {/* Hero Section */}
       <section className="w-full bg-gradient-to-r from-blue-700 via-blue-500 to-blue-400 py-14 px-4 md:px-0 flex flex-col items-center justify-center shadow-lg animate-fade-in">
         <h1 className="text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg mb-4 flex items-center gap-4 tracking-tight animate-fade-in">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-white/90 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m4 0h-1v-4h-1m4 0h-1v-4h-1m4 0h-1v-4h-1" /></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-12 w-12 text-white/90 animate-bounce">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+          </svg>
           ReferralHub
         </h1>
         <p className="text-white/90 text-2xl md:text-3xl font-medium max-w-2xl text-center mb-2 animate-fade-in delay-100">
