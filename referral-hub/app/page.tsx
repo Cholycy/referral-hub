@@ -9,7 +9,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { Suspense } from 'react'
 import { createClient } from "@supabase/supabase-js";
 import type { User } from "@supabase/supabase-js";
 
