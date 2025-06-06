@@ -7,9 +7,8 @@
 // The main page includes a header with navigation links, a login form, and a section to display referrals.
 // The application is styled using Tailwind CSS for a clean and modern look.
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from 'react'
 import { createClient } from "@supabase/supabase-js";
 import type { User } from "@supabase/supabase-js";
 
@@ -20,7 +19,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export default function Home() {
+function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [user, setUser] = useState<User | null>(null);
@@ -312,5 +311,13 @@ export default function Home() {
         © 2025 ReferralHub. All rights reserved.
       </footer>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }
