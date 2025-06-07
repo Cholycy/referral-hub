@@ -33,6 +33,10 @@ function HomeContent() {
   const [votes, setVotes] = useState<Record<string, { up: number; down: number }>>({});
   const [voteLoading, setVoteLoading] = useState<Record<string, boolean>>({});
   const [userVotes, setUserVotes] = useState<Record<string, "up" | "down" | null>>({});
+  const [showResetForm, setShowResetForm] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetMsg, setResetMsg] = useState("");
+  const [signUpMsg, setSignUpMsg] = useState("");
 
   useEffect(() => {
     const getUser = async () => {
@@ -112,31 +116,47 @@ function HomeContent() {
   };
 
   const handleSignUp = async () => {
-
-    const { error } = await supabase.auth.signUp({ email, password });
-
-    if (error) {
-
-      alert("Signup error: " + error.message);
-
-    } else {
-
-      alert("Signup successful! Check your email to confirm.");
-
-      setIsSignUp(false);
-
+    setSignUpMsg("");
+    // Check if email is already registered
+    const { error: fetchError } = await supabase.auth.signInWithPassword({ email, password: "dummy" });
+    if (fetchError && fetchError.message && fetchError.message.toLowerCase().includes("invalid login credentials")) {
+      // Not registered, proceed
+    } else if (!fetchError) {
+      setSignUpMsg("This email is already registered. Please log in instead.");
+      return;
+    } else if (fetchError && fetchError.message) {
+      setSignUpMsg("Signup error: " + fetchError.message);
+      return;
     }
-
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      setSignUpMsg("Signup error: " + error.message);
+    } else {
+      setSignUpMsg("Signup successful! Check your email to confirm.");
+      setIsSignUp(false);
+    }
   };
 
   const handleForgotPassword = async () => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    setShowResetForm(true);
+    setResetEmail(email);
+    setResetMsg("");
+  };
+
+  const handleSendReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetMsg("");
+    if (!resetEmail) {
+      setResetMsg("Please enter your email.");
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
       redirectTo: `${window.location.origin}/reset-password`
     });
     if (error) {
-      alert("Error: " + error.message);
+      setResetMsg("Error: " + error.message);
     } else {
-      alert("Password reset link sent to your email.");
+      setResetMsg("Password reset link sent to your email.");
     }
   };
 
@@ -188,6 +208,27 @@ function HomeContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      {/* Reset Password Modal */}
+      {showResetForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm animate-fade-in border border-blue-100">
+            <h2 className="text-xl font-bold mb-3 text-blue-700">Reset Password</h2>
+            <form onSubmit={handleSendReset} className="flex flex-col gap-3">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
+                value={resetEmail}
+                onChange={e => setResetEmail(e.target.value)}
+                required
+              />
+              <button type="submit" className="bg-blue-600 text-white rounded px-4 py-2 font-bold hover:bg-blue-700">Send Reset Link</button>
+              <button type="button" className="text-blue-600 underline mt-1" onClick={() => setShowResetForm(false)}>Cancel</button>
+              {resetMsg && <div className="text-sm text-center mt-2 text-blue-700">{resetMsg}</div>}
+            </form>
+          </div>
+        </div>
+      )}
       {showLoginForm && (
         <div className="p-6 max-w-md mx-auto bg-white rounded-2xl shadow-lg my-8 border border-blue-100 animate-fade-in">
           <h3 className="text-2xl font-bold mb-4 text-blue-700 flex items-center gap-2">
@@ -221,6 +262,7 @@ function HomeContent() {
               {isSignUp ? "Already have an account? Login" : "New user? Sign up"}
             </button>
           </div>
+          {signUpMsg && <div className="text-center text-blue-700 mt-2">{signUpMsg}</div>}
         </div>
       )}
       <main className="p-8">
