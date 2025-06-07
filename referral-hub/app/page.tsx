@@ -199,14 +199,14 @@ function HomeContent() {
           <input
             type="email"
             placeholder="Email"
-            className="w-full mb-2 p-2 border rounded focus:ring-2 focus:ring-blue-300"
+            className="w-full mb-2 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <input
             type="password"
             placeholder="Password"
-            className="w-full mb-2 p-2 border rounded focus:ring-2 focus:ring-blue-300"
+            className="w-full mb-2 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -239,7 +239,7 @@ function HomeContent() {
                 placeholder="Search by keyword..."
                 value={searchCategory}
                 onChange={(e) => setSearchCategory(e.target.value)}
-                className="w-full md:w-64 p-2 border rounded focus:ring-2 focus:ring-blue-300"
+                className="w-full md:w-64 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
               />
             </div>
           )}

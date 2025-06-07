@@ -102,7 +102,7 @@ export default function SubmitReferral() {
               id="title"
               name="title"
               type="text"
-              className="w-full rounded-xl border border-blue-200 px-4 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm"
+              className="w-full rounded-xl border border-blue-200 px-4 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm text-blue-900 placeholder:text-blue-500"
               placeholder="e.g. Chase Sapphire Preferred"
               value={form.title}
               onChange={handleChange}
@@ -116,7 +116,7 @@ export default function SubmitReferral() {
               id="description"
               name="description"
               rows={3}
-              className="w-full rounded-xl border border-blue-200 px-4 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm resize-none"
+              className="w-full rounded-xl border border-blue-200 px-4 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm resize-none text-blue-900 placeholder:text-blue-500"
               placeholder="Describe the referral program and benefits..."
               value={form.description}
               onChange={handleChange}
@@ -135,7 +135,14 @@ export default function SubmitReferral() {
               required
             >
               <option value="credit card">Credit Card</option>
-              <option value="membership">Membership</option>
+              <option value="bank / investment">Bank / Investment</option>
+              <option value="mobile / internet">Mobile / Internet</option>
+              <option value="shopping / cashback">Shopping / Cashback</option>
+              <option value="subscriptions">Subscriptions</option>
+              <option value="travel & transport">Travel & Transport</option>
+              <option value="health & fitness">Health & Fitness</option>
+              <option value="education">Education</option>
+              <option value="apps & tools">Apps & Tools</option>
               <option value="others">Others</option>
             </select>
           </div>
@@ -145,7 +152,7 @@ export default function SubmitReferral() {
               id="url"
               name="url"
               type="url"
-              className="w-full rounded-xl border border-blue-200 px-4 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm"
+              className="w-full rounded-xl border border-blue-200 px-4 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm text-blue-900 placeholder:text-blue-500"
               placeholder="https://your-referral-link.com"
               value={form.link}
               onChange={handleChange}

@@ -102,15 +102,15 @@ export default function ProfilePage() {
             <div key={ref.id} className="bg-white border border-blue-100 rounded-xl shadow-md p-6 flex flex-col gap-2 hover:shadow-lg transition-shadow">
               {editId === ref.id ? (
                 <form onSubmit={handleUpdate} className="space-y-3">
-                  <input type="text" name="title" value={editForm.title} onChange={handleEditChange} required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300" maxLength={50} />
-                  <textarea name="description" value={editForm.description} onChange={handleEditChange} required maxLength={150} className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300" />
-                  <select name="category" value={editForm.category} onChange={handleEditChange} required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300">
+                  <input type="text" name="title" value={editForm.title} onChange={handleEditChange} required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500" maxLength={50} />
+                  <textarea name="description" value={editForm.description} onChange={handleEditChange} required maxLength={150} className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500" />
+                  <select name="category" value={editForm.category} onChange={handleEditChange} required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500">
                     <option value="credit card">Credit Card</option>
                     <option value="membership">Membership</option>
                     <option value="others">Others</option>
                   </select>
-                  <input type="datetime-local" name="expiration" value={editForm.expiration} onChange={handleEditChange} required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300" />
-                  <input type="text" name="url" value={editForm.url} onChange={handleEditChange} required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300" placeholder="Referral Link" />
+                  <input type="datetime-local" name="expiration" value={editForm.expiration} onChange={handleEditChange} required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500" />
+                  <input type="text" name="url" value={editForm.url} onChange={handleEditChange} required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500" placeholder="Referral Link" />
                   <div className="flex gap-2 mt-2">
                     <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">Save</button>
                     <button type="button" className="bg-gray-300 px-4 py-2 rounded shadow hover:bg-gray-400" onClick={() => setEditId(null)}>Cancel</button>
