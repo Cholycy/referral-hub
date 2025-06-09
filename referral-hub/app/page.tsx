@@ -117,17 +117,17 @@ function HomeContent() {
 
   const handleSignUp = async () => {
     setSignUpMsg("");
-    // Attempt to sign up directly; Supabase will return an error if the email is already registered
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({ email, password });
+
     if (error) {
-      if (error.message && error.message.toLowerCase().includes("user already registered")) {
-        setSignUpMsg("This email is already registered. Please log in instead.");
-      } else {
-        setSignUpMsg("Signup error: " + error.message);
-      }
+      setSignUpMsg("Signup error: " + error.message);
+    } else if (data?.user?.email_confirmed_at) {
+      setSignUpMsg("Signup successful and confirmed. You can now log in.");
+    } else if (data?.user?.identities?.length === 0) {
+      // This means Supabase attempted to sign up, but user already exists
+      setSignUpMsg("This email is already registered. Please log in instead.");
     } else {
       setSignUpMsg("Signup successful! Check your email to confirm.");
-      // Do not setIsSignUp(false) here, so the user sees the message
     }
   };
 
@@ -207,14 +207,14 @@ function HomeContent() {
 
   const filteredReferrals = searchCategory
     ? referrals.filter((ref) => {
-        const q = searchCategory.toLowerCase();
-        return (
-          (ref.title && ref.title.toLowerCase().includes(q)) ||
-          (ref.description && ref.description.toLowerCase().includes(q)) ||
-          (ref.category && ref.category.toLowerCase().includes(q)) ||
-          (ref.url && ref.url.toLowerCase().includes(q))
-        );
-      })
+      const q = searchCategory.toLowerCase();
+      return (
+        (ref.title && ref.title.toLowerCase().includes(q)) ||
+        (ref.description && ref.description.toLowerCase().includes(q)) ||
+        (ref.category && ref.category.toLowerCase().includes(q)) ||
+        (ref.url && ref.url.toLowerCase().includes(q))
+      );
+    })
     : referrals;
 
   return (
@@ -248,6 +248,7 @@ function HomeContent() {
             </svg>
             {isSignUp ? "Sign Up" : "Login"} with Email
           </h3>
+
           <input
             type="email"
             placeholder="Email"
@@ -262,24 +263,55 @@ function HomeContent() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+
           <div className="flex flex-wrap gap-2 items-center mb-2">
             {isSignUp ? (
-              <button onClick={handleSignUp} className="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700">Sign Up</button>
+              <button
+                onClick={handleSignUp}
+                disabled={!email || !password}
+                className={`bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 ${(!email || !password) ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                Sign Up
+              </button>
             ) : (
-              <button onClick={handleEmailLogin} className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">Login</button>
+              <button
+                onClick={handleEmailLogin}
+                disabled={!email || !password}
+                className={`bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 ${(!email || !password) ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                Login
+              </button>
             )}
-            <button onClick={handleForgotPassword} className="text-sm text-blue-600 underline">Forgot Password?</button>
-            <button onClick={() => setIsSignUp(!isSignUp)} className="text-sm text-gray-700 underline">
-              {isSignUp ? "Already have an account? Login" : (
-                <>
-                  New user? <a href="?signup" className="text-blue-600 underline" onClick={e => { e.preventDefault(); router.replace('?signup'); }}>Sign up</a>
-                </>
-              )}
+
+            <button onClick={handleForgotPassword} className="text-sm text-blue-600 underline">
+              Forgot Password?
             </button>
+
+            {isSignUp ? (
+              <button
+                onClick={() => setIsSignUp(false)}
+                className="text-sm text-gray-700 underline"
+              >
+                Already have an account? Login
+              </button>
+            ) : (
+              <button
+                onClick={() => router.push('/signup')}
+                className="text-sm text-blue-600 underline"
+              >
+                New user? Sign up
+              </button>
+            )}
           </div>
-          {signUpMsg && <div className="text-center text-blue-700 mt-2">{signUpMsg}</div>}
+
+          {signUpMsg && (
+            <div className="text-center text-blue-700 mt-2">
+              {signUpMsg}
+            </div>
+          )}
         </div>
       )}
+
       <main className="p-8">
         {/* Description Section removed and moved to About page */}
         <section className="bg-white p-8 rounded-2xl shadow-xl max-w-4xl mx-auto border border-blue-100 animate-fade-in">
@@ -329,7 +361,7 @@ function HomeContent() {
                     )}
                     <div className="flex gap-4 mt-2 items-center">
                       <button
-                        className={`flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50 ${userVotes[ref.id]==='up' ? 'ring-2 ring-green-400' : ''}`}
+                        className={`flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50 ${userVotes[ref.id] === 'up' ? 'ring-2 ring-green-400' : ''}`}
                         onClick={() => handleVote(ref.id, 'up')}
                         onDoubleClick={() => handleVote(ref.id, 'up')}
                         disabled={voteLoading[ref.id]}
@@ -339,7 +371,7 @@ function HomeContent() {
                         {votes[ref.id]?.up || 0}
                       </button>
                       <button
-                        className={`flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50 ${userVotes[ref.id]==='down' ? 'ring-2 ring-red-400' : ''}`}
+                        className={`flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50 ${userVotes[ref.id] === 'down' ? 'ring-2 ring-red-400' : ''}`}
                         onClick={() => handleVote(ref.id, 'down')}
                         onDoubleClick={() => handleVote(ref.id, 'down')}
                         disabled={voteLoading[ref.id]}
