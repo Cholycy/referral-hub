@@ -63,7 +63,7 @@ function ResetPasswordContent() {
       <section className="w-full max-w-md bg-white/80 rounded-3xl shadow-2xl border border-blue-100 p-8 flex flex-col gap-6 backdrop-blur-md animate-fade-in">
         <h1 className="text-2xl font-extrabold text-blue-700 mb-2 text-center">Authentication</h1>
         <div className="text-center mb-4 text-blue-700 text-lg">{infoMsg}</div>
-        {type === "recovery" && (
+        {(type === "recovery" || !type) && (
           <form onSubmit={handleReset} className="flex flex-col gap-4">
             <input
               type="password"

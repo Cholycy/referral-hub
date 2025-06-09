@@ -117,23 +117,17 @@ function HomeContent() {
 
   const handleSignUp = async () => {
     setSignUpMsg("");
-    // Check if email is already registered
-    const { error: fetchError } = await supabase.auth.signInWithPassword({ email, password: "dummy" });
-    if (fetchError && fetchError.message && fetchError.message.toLowerCase().includes("invalid login credentials")) {
-      // Not registered, proceed
-    } else if (!fetchError) {
-      setSignUpMsg("This email is already registered. Please log in instead.");
-      return;
-    } else if (fetchError && fetchError.message) {
-      setSignUpMsg("Signup error: " + fetchError.message);
-      return;
-    }
+    // Attempt to sign up directly; Supabase will return an error if the email is already registered
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) {
-      setSignUpMsg("Signup error: " + error.message);
+      if (error.message && error.message.toLowerCase().includes("user already registered")) {
+        setSignUpMsg("This email is already registered. Please log in instead.");
+      } else {
+        setSignUpMsg("Signup error: " + error.message);
+      }
     } else {
       setSignUpMsg("Signup successful! Check your email to confirm.");
-      setIsSignUp(false);
+      // Do not setIsSignUp(false) here, so the user sees the message
     }
   };
 
@@ -193,6 +187,23 @@ function HomeContent() {
     setUserVotes((prev) => ({ ...prev, [referralId]: newUserVote }));
     setVoteLoading((prev) => ({ ...prev, [referralId]: false }));
   };
+
+  const handleLoginLogout = () => {
+    if (user) {
+      // If logged in, log out and redirect
+      router.push('/logout');
+    } else {
+      // If not logged in, show login form
+      setShowLoginForm(true);
+    }
+  };
+
+  useEffect(() => {
+    // Listen for login-logout-click event from nav
+    const handler = () => handleLoginLogout();
+    window.addEventListener('login-logout-click', handler);
+    return () => window.removeEventListener('login-logout-click', handler);
+  }, [user]);
 
   const filteredReferrals = searchCategory
     ? referrals.filter((ref) => {
@@ -259,7 +270,11 @@ function HomeContent() {
             )}
             <button onClick={handleForgotPassword} className="text-sm text-blue-600 underline">Forgot Password?</button>
             <button onClick={() => setIsSignUp(!isSignUp)} className="text-sm text-gray-700 underline">
-              {isSignUp ? "Already have an account? Login" : "New user? Sign up"}
+              {isSignUp ? "Already have an account? Login" : (
+                <>
+                  New user? <a href="?signup" className="text-blue-600 underline" onClick={e => { e.preventDefault(); router.replace('?signup'); }}>Sign up</a>
+                </>
+              )}
             </button>
           </div>
           {signUpMsg && <div className="text-center text-blue-700 mt-2">{signUpMsg}</div>}

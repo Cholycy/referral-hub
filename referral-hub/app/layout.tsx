@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,6 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white min-h-screen`}>
@@ -40,10 +42,19 @@ export default function RootLayout({
               <Link href="/" className="rounded-lg px-3 py-1 text-white/90 text-lg md:text-xl font-bold hover:bg-white/20 hover:text-yellow-200 transition font-medium">Dashboard</Link>
               <Link href="/submit" className="rounded-lg px-3 py-1 text-white/90 text-lg md:text-xl font-bold hover:bg-white/20 hover:text-yellow-200 transition font-medium">Submit</Link>
               <Link href="/profile" className="rounded-lg px-3 py-1 text-white/90 text-lg md:text-xl font-bold hover:bg-white/20 hover:text-yellow-200 transition font-medium">Profile</Link>
-              <Link href="/logout" className="flex items-center gap-1 bg-white/20 text-white font-bold text-lg md:text-xl px-4 py-1 rounded-full shadow hover:bg-white/40 hover:text-blue-800 transition border border-white/30" style={{ backdropFilter: 'blur(2px)' }}>
+              <button
+                onClick={() => {
+                  // Use window event to trigger login/logout logic in HomeContent
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('login-logout-click'));
+                  }
+                }}
+                className="flex items-center gap-1 bg-white/20 text-white font-bold text-lg md:text-xl px-4 py-1 rounded-full shadow hover:bg-white/40 hover:text-blue-800 transition border border-white/30"
+                style={{ backdropFilter: 'blur(2px)' }}
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1" /></svg>
                 Login / Logout
-              </Link>
+              </button>
             </div>
             {/* Mobile hamburger */}
             <button
@@ -62,7 +73,15 @@ export default function RootLayout({
                 <Link href="/" className="block px-4 py-2 text-blue-700 font-semibold hover:bg-blue-50" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
                 <Link href="/submit" className="block px-4 py-2 text-blue-700 font-semibold hover:bg-blue-50" onClick={() => setMobileMenuOpen(false)}>Submit</Link>
                 <Link href="/profile" className="block px-4 py-2 text-blue-700 font-semibold hover:bg-blue-50" onClick={() => setMobileMenuOpen(false)}>Profile</Link>
-                <Link href="/logout" className="block px-4 py-2 text-blue-700 font-semibold hover:bg-blue-50" onClick={() => setMobileMenuOpen(false)}>Login / Logout</Link>
+                <button
+                  className="block w-full text-left px-4 py-2 text-blue-700 font-semibold hover:bg-blue-50"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    if (typeof window !== 'undefined') {
+                      window.dispatchEvent(new CustomEvent('login-logout-click'));
+                    }
+                  }}
+                >Login / Logout</button>
               </div>
             )}
           </div>
