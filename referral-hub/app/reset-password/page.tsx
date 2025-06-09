@@ -9,13 +9,9 @@ const supabase = createClient(supabaseUrl!, supabaseAnonKey!);
 
 function ResetPasswordContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [newPassword, setNewPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [msg, setMsg] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [type, setType] = useState<string | null>(null);
-  const [infoMsg, setInfoMsg] = useState("");
   const [tokenReady, setTokenReady] = useState(false);
 
   useEffect(() => {
