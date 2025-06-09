@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [reminder, setReminder] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -18,8 +19,8 @@ export default function SignUpPage() {
     setLoading(true);
     setReminder("");
 
-    // Try to sign up; if already registered, Supabase returns an error
-    const { error } = await supabase.auth.signUp({ email });
+    // Try to sign up; password is required by Supabase
+    const { error } = await supabase.auth.signUp({ email, password });
     if (error) {
       if (error.message.includes("already registered") || error.message.includes("User already registered")) {
         setReminder("You are already registered. Please log in.");
@@ -46,6 +47,14 @@ export default function SignUpPage() {
           placeholder="Enter your email"
           value={email}
           onChange={e => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          className="border p-2 w-full mb-4"
+          placeholder="Enter your password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
           required
         />
         <button
