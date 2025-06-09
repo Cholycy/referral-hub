@@ -9,30 +9,34 @@ const supabase = createClient(supabaseUrl!, supabaseAnonKey!);
 
 function ResetPasswordContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [newPassword, setNewPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [tokenReady, setTokenReady] = useState(false);
 
   useEffect(() => {
-    // Supabase session is already updated by the reset link
-    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        setTokenReady(true); // Session is ready, show the form
-      }
-    });
-
-    // Sometimes PASSWORD_RECOVERY doesn't trigger, use fallback
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setTokenReady(true);
-      }
-    });
-
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
-  }, []);
+    // Check for access_token in URL (new Supabase flow)
+    const access_token = searchParams.get("access_token");
+    const refresh_token = searchParams.get("refresh_token");
+    if (access_token && refresh_token) {
+      supabase.auth
+        .setSession({
+          access_token,
+          refresh_token,
+        })
+        .then(({ error }) => {
+          if (!error) setTokenReady(true);
+          else setMessage("Invalid or expired reset link.");
+        });
+    } else {
+      // Fallback: check if session exists
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) setTokenReady(true);
+        else setMessage("Invalid or expired reset link.");
+      });
+    }
+  }, [searchParams]);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
