@@ -9,7 +9,9 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 export default function ResetPasswordPage() {
   const supabase = createClientComponentClient();
   const router = useRouter();
-
+  const [newPassword, setNewPassword] = useState('');
+  const [message, setMessage] = useState<string>('');
+  const [user, setUser] = useState<any>(null);
 useEffect(() => {
     const handleAuth = async () => {
       const url = new URL(window.location.href);
@@ -33,6 +35,10 @@ useEffect(() => {
         return;
       }
 
+      // Fetch the user after setting the session
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+
       // ✅ Now the user is logged in — safe to redirect
       if (type === 'recovery') {
         router.replace('/reset-password');
@@ -44,5 +50,30 @@ useEffect(() => {
     handleAuth();
   }, [router, supabase]);
 
-  return <p>Verifying token and signing in...</p>;
+  const handlePasswordReset = async () => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (error) {
+      setMessage(error.message);
+    } else {
+      setMessage('Password updated successfully! You can now log in.');
+    }
+  };
+
+  if (!user) return <p>{message || 'Loading...'}</p>;
+
+  return (
+    <div>
+      <h1>Reset Your Password</h1>
+      <input
+        type="password"
+        value={newPassword}
+        onChange={(e) => setNewPassword(e.target.value)}
+        placeholder="New password"
+      />
+      <button onClick={handlePasswordReset}>Update Password</button>
+      {message && <p>{message}</p>}
+    </div>
+  );
 }
+
