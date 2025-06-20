@@ -20,8 +20,12 @@ function ResetPasswordContent() {
   useEffect(() => {
     // Check for access_token in URL (new Supabase flow)
     if (access_token && type === 'recovery') {
-      setLoading(false) // token is being verified by supabase automatically
-    }}, [router]);
+      setTokenReady(true); // token is ready, show form
+      setLoading(false);
+    } else {
+      setTokenReady(false); // still waiting for token
+    }
+  }, [access_token, type]);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +48,7 @@ function ResetPasswordContent() {
     </div>
   };
 
-  //if (!tokenReady) {
+  if (!tokenReady) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-white px-4">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-blue-100 text-center">
@@ -56,7 +60,7 @@ function ResetPasswordContent() {
         </div>
       </div>
     );
-  //}
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-white px-4">
