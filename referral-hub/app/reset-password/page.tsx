@@ -12,12 +12,12 @@ function ResetPasswordContent() {
   const searchParams = useSearchParams();
   const [newPassword, setNewPassword] = useState("");
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const access_token = searchParams.get('access_token');
-  const type = searchParams.get('type');
+  const [loading, setLoading] = useState(true);
   const [tokenReady, setTokenReady] = useState(false);
 
   useEffect(() => {
+    const access_token = searchParams.get('access_token');
+    const type = searchParams.get('type');
     // Check for access_token in URL (new Supabase flow)
     if (access_token && type === 'recovery') {
       setTokenReady(true); // token is ready, show form
@@ -25,7 +25,9 @@ function ResetPasswordContent() {
     } else {
       setTokenReady(false); // still waiting for token
     }
-  }, [access_token, type]);
+  }, [searchParams]);
+
+  if (loading) return <div>Verifying...</div>;
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
