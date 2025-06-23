@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { User } from "@supabase/supabase-js";
 
@@ -12,20 +12,31 @@ function ResetPasswordContent() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const supabase = createClientComponentClient();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data, error }) => {
-      setUser(data?.user || null);
+    const access_token = searchParams.get('access_token');
+    const refresh_token = searchParams.get('refresh_token');
+    
+    if (access_token && refresh_token) {
+      supabase.auth.setSession({ access_token, refresh_token }).then(({ error }) => {
+        if (error) {
+          console.error('Set session error:', error.message);
+          setCheckingAuth(false);
+        } else {
+          supabase.auth.getUser().then(({ data, error }) => {
+            console.log('User data:', data, 'Error:', error);
+            setUser(data?.user ?? null);
+            setCheckingAuth(false);
+          });
+        }
+      });
+    } else {
+      console.warn('Missing token');
       setCheckingAuth(false);
-      console.log("User data:", data, "Error:", error);
     }
-    ).catch((error) => {
-      console.error("Error fetching user:", error);
-      setCheckingAuth(false);
-    }
-    );
   }, []);
-
+  
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);

@@ -34,7 +34,8 @@ export default function AuthCallbackPage() {
 
       // Redirect based on token type
       if (type === 'recovery') {
-        router.replace('/reset-password');
+        const redirectUrl = `/reset-password?access_token=${access_token}&refresh_token=${refresh_token}&type=recovery`;
+        router.replace(redirectUrl);
       } else {
         router.replace('/');
       }
