@@ -17,6 +17,7 @@ function ResetPasswordContent() {
   useEffect(() => {
     const access_token = searchParams.get('access_token');
     const refresh_token = searchParams.get('refresh_token');
+    console.log('[DEBUG] href in reset page:', window.location.href);
     console.log('[DEBUG] Query tokens:', { access_token, refresh_token });
     // Always set session if tokens are present
     if (access_token && refresh_token) {
