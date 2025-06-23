@@ -12,10 +12,10 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const handleAuth = async () => {
-      const url = new URL(window.location.href);
-      const access_token = url.searchParams.get('access_token');
-      const refresh_token = url.searchParams.get('refresh_token');
-      const type = url.searchParams.get('type');
+      const hashParams = new URLSearchParams(window.location.hash.slice(1)); // get everything after #
+      const access_token = hashParams.get('access_token');
+      const refresh_token = hashParams.get('refresh_token');
+      const type = hashParams.get('type');
 
       if (!access_token || !refresh_token) {
         console.error('Missing token in URL');
