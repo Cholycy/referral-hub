@@ -17,25 +17,27 @@ function ResetPasswordContent() {
   useEffect(() => {
     const access_token = searchParams.get('access_token');
     const refresh_token = searchParams.get('refresh_token');
-    
+    console.log('[DEBUG] Query tokens:', { access_token, refresh_token });
+    // Always set session if tokens are present
     if (access_token && refresh_token) {
       supabase.auth.setSession({ access_token, refresh_token }).then(({ error }) => {
         if (error) {
-          console.error('Set session error:', error.message);
+          setMessage('Session error: ' + error.message);
           setCheckingAuth(false);
+          console.error('[DEBUG] Session error:', error.message);
         } else {
           supabase.auth.getUser().then(({ data, error }) => {
-            console.log('User data:', data, 'Error:', error);
             setUser(data?.user ?? null);
             setCheckingAuth(false);
+            console.log('[DEBUG] getUser result:', { data, error });
           });
         }
       });
     } else {
-      console.warn('Missing token');
       setCheckingAuth(false);
+      console.warn('[DEBUG] No tokens found in query string');
     }
-  }, []);
+  }, [searchParams, supabase]);
   
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
