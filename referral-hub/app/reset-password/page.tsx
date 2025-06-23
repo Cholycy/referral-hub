@@ -17,7 +17,13 @@ function ResetPasswordContent() {
     supabase.auth.getUser().then(({ data, error }) => {
       setUser(data?.user || null);
       setCheckingAuth(false);
-    });
+      console.log("User data:", data, "Error:", error);
+    }
+    ).catch((error) => {
+      console.error("Error fetching user:", error);
+      setCheckingAuth(false);
+    }
+    );
   }, []);
 
   const handleReset = async (e: React.FormEvent) => {
