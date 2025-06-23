@@ -10,7 +10,8 @@ cd referral-hub
 ## 2. install dependencies
 ```bash
 npm install @supabase/supabase-js tailwindcss postcss autoprefixer 
-npm install npm install @supabase/auth-helpers-nextjs
+npm install @supabase/auth-helpers-nextjs
+
 ```
 ## 3. Create a .env.local file in your project root:
 ```bash
