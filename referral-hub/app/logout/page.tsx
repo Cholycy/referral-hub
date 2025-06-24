@@ -1,10 +1,11 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 
 export default function LogoutPage() {
   const router = useRouter();
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     const logout = async () => {
@@ -14,7 +15,10 @@ export default function LogoutPage() {
       const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
       if (supabaseUrl && supabaseAnonKey) {
         const supabase = createClient(supabaseUrl, supabaseAnonKey);
-        await supabase.auth.signOut();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.auth.signOut();
+        }
       }
       // Redirect to home with login/signup section open
       router.replace('/?showLogin=1');

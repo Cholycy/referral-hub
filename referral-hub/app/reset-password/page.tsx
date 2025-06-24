@@ -17,33 +17,28 @@ function ResetPasswordContent() {
   useEffect(() => {
     let access_token = searchParams.get('access_token');
     let refresh_token = searchParams.get('refresh_token');
-    console.log('[DEBUG] href in reset page:', window.location.href);
     // Fallback: Try to get tokens from hash if not in query string
     if (!access_token || !refresh_token) {
       const hashParams = new URLSearchParams(window.location.hash.slice(1));
       access_token = hashParams.get('access_token');
       refresh_token = hashParams.get('refresh_token');
-      console.log('[DEBUG] Fallback to hash tokens:', { access_token, refresh_token });
     }
-    console.log('[DEBUG] Query tokens:', { access_token, refresh_token });
+
     // Always set session if tokens are present
     if (access_token && refresh_token) {
       supabase.auth.setSession({ access_token, refresh_token }).then(({ error }) => {
         if (error) {
           setMessage('Session error: ' + error.message);
           setCheckingAuth(false);
-          console.error('[DEBUG] Session error:', error.message);
         } else {
           supabase.auth.getUser().then(({ data, error }) => {
             setUser(data?.user ?? null);
             setCheckingAuth(false);
-            console.log('[DEBUG] getUser result:', { data, error });
           });
         }
       });
     } else {
       setCheckingAuth(false);
-      console.warn('[DEBUG] No tokens found in query string or hash');
     }
   }, [searchParams, supabase]);
   
@@ -56,8 +51,8 @@ function ResetPasswordContent() {
       setMessage("Error resetting password: " + error.message);
       setLoading(false);
     } else {
-      setMessage("Password updated! You will be redirected to login.");
-      setTimeout(() => router.push("/login"), 3000);
+      setMessage("Password updated! Redirecting to login...");
+      setTimeout(() => router.push("/logout"), 1500); // Faster redirect
     }
   };
 
