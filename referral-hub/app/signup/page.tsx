@@ -1,3 +1,8 @@
+/*
+Copyright (c) 2025 cholycy@gmail.com
+All rights reserved.
+*/
+
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";

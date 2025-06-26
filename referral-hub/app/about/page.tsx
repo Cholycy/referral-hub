@@ -1,3 +1,8 @@
+/*
+Copyright (c) 2025 cholycy@gmail.com
+All rights reserved.
+*/
+
 export default function AboutPage() {
   return (
     <main className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 p-0">

@@ -1,4 +1,7 @@
-'use client';
+/*
+Copyright (c) 2025 cholycy@gmail.com
+All rights reserved.
+*/
 // This is a simple referral hub application using Next.js and Supabase.
 // It allows users to log in, view referrals, and submit new referrals.
 // Users can also reset their passwords and manage their profiles.
@@ -7,6 +10,7 @@
 // The main page includes a header with navigation links, a login form, and a section to display referrals.
 // The application is styled using Tailwind CSS for a clean and modern look.
 
+'use client';
 import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";

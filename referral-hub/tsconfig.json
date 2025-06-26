@@ -1,3 +1,7 @@
+/*
+Copyright (c) 2025 cholycy@gmail.com
+All rights reserved.
+*/
 {
   "compilerOptions": {
     "target": "ES2017",

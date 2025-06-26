@@ -1,3 +1,8 @@
+/*
+Copyright (c) 2025 cholycy@gmail.com
+All rights reserved.
+*/
+
 # referral-hub
 
 A website for users to share or get referrals from others

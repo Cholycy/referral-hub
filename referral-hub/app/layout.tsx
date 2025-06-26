@@ -1,3 +1,7 @@
+/*
+Copyright (c) 2025 cholycy@gmail.com
+All rights reserved.
+*/
 "use client";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";

@@ -1,3 +1,7 @@
+/*
+Copyright (c) 2025 cholycy@gmail.com
+All rights reserved.
+*/
 "use client";
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";

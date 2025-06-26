@@ -1,3 +1,8 @@
+/*
+Copyright (c) 2025 cholycy@gmail.com
+All rights reserved.
+*/
+
 // app/auth/callback/page.tsx
 
 'use client';
