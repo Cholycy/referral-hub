@@ -221,6 +221,28 @@ function HomeContent() {
     })
     : referrals;
 
+  // Referral Link Shortcut Component
+  function ReferralShortcut({ user }: { user: User }) {
+    const [copied, setCopied] = useState(false);
+    const referralUrl = (typeof window !== 'undefined' ? window.location.origin : '') + `/signup?ref=${user.id}`;
+    const handleCopy = () => {
+      navigator.clipboard.writeText(referralUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    };
+    return (
+      <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mb-4">
+        <span className="truncate text-blue-700 font-mono text-sm" title={referralUrl}>{referralUrl}</span>
+        <button
+          onClick={handleCopy}
+          className="ml-2 px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs"
+        >
+          {copied ? "Copied!" : "Copy"}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
       {/* Reset Password Modal */}
@@ -326,7 +348,9 @@ function HomeContent() {
             Welcome to ReferralHub
           </h2>
           {user && (
-            <div className="mb-6 flex flex-col md:flex-row gap-2 md:items-center">
+            <>
+              {/* Referral Link Shortcut */}
+              <ReferralShortcut user={user} />
               <input
                 type="text"
                 placeholder="Search by keyword..."
@@ -334,7 +358,7 @@ function HomeContent() {
                 onChange={(e) => setSearchCategory(e.target.value)}
                 className="w-full md:w-64 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
               />
-            </div>
+            </>
           )}
           {user ? (
             <>

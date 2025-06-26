@@ -40,11 +40,7 @@ export default function SubmitReferral() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    if (name === "expiration") {
-      setForm((prev) => ({ ...prev, expiration: value }));
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
-    }
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -151,14 +147,25 @@ export default function SubmitReferral() {
             </select>
           </div>
           <div>
-            <label htmlFor="url" className="block text-blue-800 font-semibold mb-1">Referral Link</label>
+            <label htmlFor="link" className="block text-blue-800 font-semibold mb-1">Referral Link</label>
             <input
-              id="url"
-              name="url"
+              id="link"
+              name="link"
               type="url"
               className="w-full rounded-xl border border-blue-200 px-4 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm text-blue-900 placeholder:text-blue-500"
-              placeholder="https://your-referral-link.com"
               value={form.link}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="expiration" className="block text-blue-800 font-semibold mb-1">Expiration Date</label>
+            <input
+              id="expiration"
+              name="expiration"
+              type="datetime-local"
+              className="w-full rounded-xl border border-blue-200 px-4 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm text-blue-900 placeholder:text-blue-500"
+              value={form.expiration}
               onChange={handleChange}
               required
             />
