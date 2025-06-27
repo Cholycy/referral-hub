@@ -1,4 +1,4 @@
-Copyright (c) 2025 cholycy@gmail.com
+Copyright (c) 2025 -- Yu Chen (cholycy@gmail.com)
 
 All rights reserved.
 

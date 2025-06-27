@@ -28,7 +28,7 @@ function HomeContent() {
   const searchParams = useSearchParams();
   const [user, setUser] = useState<User | null>(null);
   const [referrals, setReferrals] = useState<Array<{ id: string; title: string; url: string; description?: string; category?: string; expiration_date?: string }>>([]);
-  const [visibleCount, setVisibleCount] = useState(5);
+  const [visibleCount, setVisibleCount] = useState(6);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showLoginForm, setShowLoginForm] = useState(false);
@@ -69,12 +69,14 @@ function HomeContent() {
     const fetchVotes = async () => {
       if (!referrals.length) return;
       const { data, error } = await supabase
-        .from("referral_votes")
-        .select("referral_id, up, down");
+        .from("referral_user_votes")
+        .select("referral_id, vote_type");
       if (!error && data) {
         const voteMap: Record<string, { up: number; down: number }> = {};
         data.forEach((v: any) => {
-          voteMap[v.referral_id] = { up: v.up, down: v.down };
+          if (!voteMap[v.referral_id]) voteMap[v.referral_id] = { up: 0, down: 0 };
+          if (v.vote_type === "up") voteMap[v.referral_id].up += 1;
+          if (v.vote_type === "down") voteMap[v.referral_id].down += 1;
         });
         setVotes(voteMap);
       }
@@ -385,7 +387,23 @@ function HomeContent() {
                       )}
                     </div>
                     {ref.url && (
-                      <a href={ref.url} className="text-blue-600 underline break-all font-mono" target="_blank" rel="noopener noreferrer">{ref.url}</a>
+                      <a
+                        href={ref.url}
+                        className="text-blue-600 underline break-all font-mono"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={ref.url}
+                      >
+                        {(() => {
+                          try {
+                            const u = new URL(ref.url);
+                            const path = u.pathname.length > 12 ? u.pathname.slice(0, 12) + "..." : u.pathname;
+                            return `${u.hostname}${path}`;
+                          } catch {
+                            return ref.url.length > 24 ? ref.url.slice(0, 24) + "..." : ref.url;
+                          }
+                        })()}
+                      </a>
                     )}
                     <div className="flex gap-4 mt-2 items-center">
                       <button
@@ -416,7 +434,7 @@ function HomeContent() {
                 <div className="flex justify-center mt-6">
                   <button
                     className="px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition"
-                    onClick={() => setVisibleCount((c) => c + 5)}
+                    onClick={() => setVisibleCount((c) => c + 6)}
                   >
                     Load more
                   </button>
