@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 cholycy@gmail.com
+Copyright (c) 2025, Yu Chen, cholycy@gmail.com
 All rights reserved.
 */
 // This is a simple referral hub application using Next.js and Supabase.
@@ -392,7 +392,6 @@ function HomeContent() {
                         className="text-blue-600 underline break-all font-mono"
                         target="_blank"
                         rel="noopener noreferrer"
-                        title={ref.url}
                       >
                         {(() => {
                           try {
