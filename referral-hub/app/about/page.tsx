@@ -37,70 +37,70 @@ export default function AboutPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
             {/* Category Card Example */}
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 hover:scale-105 hover:shadow-2xl transition-all duration-200 border border-blue-100/40 backdrop-blur-md">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
               <span className="text-3xl">💳</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Credit Card</span>
                 <div className="text-gray-600 text-sm">Earn bonus points or cashback by referring credit cards.</div>
               </div>
             </div>
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 hover:scale-105 hover:shadow-2xl transition-all duration-200 border border-blue-100/40 backdrop-blur-md">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
               <span className="text-3xl">🏦</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Bank / Investment</span>
                 <div className="text-gray-600 text-sm">Refer friends to open bank accounts, stock or crypto platforms.</div>
               </div>
             </div>
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 hover:scale-105 hover:shadow-2xl transition-all duration-200 border border-blue-100/40 backdrop-blur-md">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
               <span className="text-3xl">📶</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Mobile / Internet</span>
                 <div className="text-gray-600 text-sm">Share deals from mobile carriers, home internet, or eSIM services.</div>
               </div>
             </div>
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 hover:scale-105 hover:shadow-2xl transition-all duration-200 border border-blue-100/40 backdrop-blur-md">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
               <span className="text-3xl">🛒</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Shopping / Cashback</span>
                 <div className="text-gray-600 text-sm">Refer people to platforms like Rakuten, Honey, or Ibotta.</div>
               </div>
             </div>
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 hover:scale-105 hover:shadow-2xl transition-all duration-200 border border-blue-100/40 backdrop-blur-md">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
               <span className="text-3xl">📦</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Subscriptions</span>
                 <div className="text-gray-600 text-sm">Include meal kits, pet boxes, streaming or digital tools.</div>
               </div>
             </div>
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 hover:scale-105 hover:shadow-2xl transition-all duration-200 border border-blue-100/40 backdrop-blur-md">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
               <span className="text-3xl">✈️</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Travel & Transport</span>
                 <div className="text-gray-600 text-sm">Earn rewards by referring Airbnb, Uber, car rentals, and airlines.</div>
               </div>
             </div>
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 hover:scale-105 hover:shadow-2xl transition-all duration-200 border border-blue-100/40 backdrop-blur-md">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
               <span className="text-3xl">🧘</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Health & Fitness</span>
                 <div className="text-gray-600 text-sm">Refer gym memberships, fitness apps, or mental health platforms.</div>
               </div>
             </div>
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 hover:scale-105 hover:shadow-2xl transition-all duration-200 border border-blue-100/40 backdrop-blur-md">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
               <span className="text-3xl">🎓</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Education</span>
                 <div className="text-gray-600 text-sm">Invite others to learning platforms like Coursera, Duolingo, LeetCode.</div>
               </div>
             </div>
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 hover:scale-105 hover:shadow-2xl transition-all duration-200 border border-blue-100/40 backdrop-blur-md">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
               <span className="text-3xl">🧰</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Apps & Tools</span>
                 <div className="text-gray-600 text-sm">General tech or productivity apps like Notion, Canva, Dropbox.</div>
               </div>
             </div>
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 hover:scale-105 hover:shadow-2xl transition-all duration-200 border border-blue-100/40 backdrop-blur-md col-span-1 sm:col-span-2 lg:col-span-1">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md col-span-1 sm:col-span-2 lg:col-span-1">
               <span className="text-3xl">🌀</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Others</span>
