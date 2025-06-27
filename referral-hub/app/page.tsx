@@ -223,27 +223,7 @@ function HomeContent() {
     })
     : referrals;
 
-  // Referral Link Shortcut Component
-  function ReferralShortcut({ user }: { user: User }) {
-    const [copied, setCopied] = useState(false);
-    const referralUrl = (typeof window !== 'undefined' ? window.location.origin : '') + `/signup?ref=${user.id}`;
-    const handleCopy = () => {
-      navigator.clipboard.writeText(referralUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1200);
-    };
-    return (
-      <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mb-4">
-        <span className="truncate text-blue-700 font-mono text-sm" title={referralUrl}>{referralUrl}</span>
-        <button
-          onClick={handleCopy}
-          className="ml-2 px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs"
-        >
-          {copied ? "Copied!" : "Copy"}
-        </button>
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
@@ -351,8 +331,6 @@ function HomeContent() {
           </h2>
           {user && (
             <>
-              {/* Referral Link Shortcut */}
-              <ReferralShortcut user={user} />
               <input
                 type="text"
                 placeholder="Search by keyword..."
