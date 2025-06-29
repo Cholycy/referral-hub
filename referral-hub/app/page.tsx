@@ -28,7 +28,7 @@ function HomeContent() {
   const searchParams = useSearchParams();
   const [user, setUser] = useState<User | null>(null);
   const [referrals, setReferrals] = useState<Array<{ id: string; title: string; url: string; description?: string; category?: string; expiration_date?: string }>>([]);
-  const [visibleCount, setVisibleCount] = useState(6);
+  const [visibleCount, setVisibleCount] = useState(12);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showLoginForm, setShowLoginForm] = useState(false);
@@ -52,7 +52,10 @@ function HomeContent() {
 
   useEffect(() => {
     const fetchReferrals = async () => {
-      const { data, error } = await supabase.from("referrals").select("*");
+      const { data, error } = await supabase
+        .from("referrals")
+        .select("*")
+        .order("id", { ascending: false }); // order by latest submit (assuming id is serial)
       if (data) setReferrals(data);
     };
     if (user) fetchReferrals();
@@ -411,9 +414,9 @@ function HomeContent() {
                 <div className="flex justify-center mt-6">
                   <button
                     className="px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition"
-                    onClick={() => setVisibleCount((c) => c + 6)}
+                    onClick={() => setVisibleCount((c) => c + 12)}
                   >
-                    Load more
+                    Show more
                   </button>
                 </div>
               )}
