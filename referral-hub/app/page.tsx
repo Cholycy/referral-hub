@@ -2,12 +2,12 @@
 Copyright (c) 2025, Yu Chen, cholycy@gmail.com
 All rights reserved.
 */
-// This is a simple referral hub application using Next.js and Supabase.
-// It allows users to log in, view referrals, and submit new referrals.
+// This is a simple share hub application using Next.js and Supabase.
+// It allows users to log in, view sharings, and submit new sharings.
 // Users can also reset their passwords and manage their profiles.
 // The application uses Supabase for authentication and database management.
-// The code is structured to handle user authentication, referral fetching, and UI rendering.
-// The main page includes a header with navigation links, a login form, and a section to display referrals.
+// The code is structured to handle user authentication, share fetching, and UI rendering.
+// The main page includes a header with navigation links, a login form, and a section to display sharings.
 // The application is styled using Tailwind CSS for a clean and modern look.
 
 'use client';
@@ -330,7 +330,7 @@ function HomeContent() {
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-8 w-8 text-blue-500">
               <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
             </svg>
-            Welcome to ReferralHub
+            Real Deals from Real People
           </h2>
           {user && (
             <>
@@ -341,11 +341,11 @@ function HomeContent() {
                 onChange={(e) => setSearchCategory(e.target.value)}
                 className="w-full md:w-64 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
               />
+              <div className="h-6" />
             </>
           )}
           {user ? (
             <>
-              <p className="text-gray-700 mb-6 text-lg">Here are some available referrals:</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredReferrals.slice(0, visibleCount).map((ref) => (
                   <div key={ref.id} className="bg-gradient-to-br from-blue-100 to-white border border-blue-200 rounded-xl shadow-md p-6 flex flex-col gap-2 hover:shadow-lg transition-shadow">
@@ -391,7 +391,7 @@ function HomeContent() {
                         onClick={() => handleVote(ref.id, 'up')}
                         onDoubleClick={() => handleVote(ref.id, 'up')}
                         disabled={voteLoading[ref.id]}
-                        aria-label="Upvote"
+                        aria-label="Useful"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
                         {votes[ref.id]?.up || 0}
@@ -401,7 +401,7 @@ function HomeContent() {
                         onClick={() => handleVote(ref.id, 'down')}
                         onDoubleClick={() => handleVote(ref.id, 'down')}
                         disabled={voteLoading[ref.id]}
-                        aria-label="Downvote"
+                        aria-label="Useless"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                         {votes[ref.id]?.down || 0}
@@ -427,7 +427,7 @@ function HomeContent() {
         </section>
       </main>
       <footer className="text-center text-sm text-gray-500 p-6 mt-8">
-        © 2025 ReferralHub. All rights reserved.
+        © 2025 ShareHub. All rights reserved.
       </footer>
     </div>
   );

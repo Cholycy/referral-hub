@@ -1,9 +1,10 @@
+````markdown
 Copyright (c) 2025 -- Yu Chen (cholycy@gmail.com)
 
 All rights reserved.
 
 
-# Referral-hub
+# ShareHub
 
 A website for users to share or get referrals from others, setup steps:
 ## 1. Create a new Next.js project:
@@ -31,3 +32,4 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key-here
 
 ## License
 This project is licensed under a proprietary license.  **All rights reserved.** You may view the source code, but you may not use, copy, modify, or distribute it without explicit permission from the author. See the [LICENSE](./LICENSE) file for more details.
+````

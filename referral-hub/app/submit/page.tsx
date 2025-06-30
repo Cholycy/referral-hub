@@ -93,7 +93,7 @@ export default function SubmitReferral() {
       <section className="w-full max-w-xl bg-white/70 rounded-3xl shadow-2xl border border-blue-100 p-8 md:p-12 flex flex-col gap-6 backdrop-blur-md animate-fade-in">
         <h1 className="text-3xl md:text-4xl font-extrabold text-blue-700 mb-2 text-center flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-          Submit a Referral
+          Share Your Favorite Deal
         </h1>
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div>
@@ -111,7 +111,7 @@ export default function SubmitReferral() {
             />
           </div>
           <div>
-            <label htmlFor="description" className="block text-blue-800 font-semibold mb-1">Description</label>
+            <label htmlFor="description" className="block text-blue-800 font-semibold mb-1">What do you love about this?</label>
             <textarea
               id="description"
               name="description"
@@ -147,7 +147,7 @@ export default function SubmitReferral() {
             </select>
           </div>
           <div>
-            <label htmlFor="link" className="block text-blue-800 font-semibold mb-1">Referral Link</label>
+            <label htmlFor="link" className="block text-blue-800 font-semibold mb-1">Benefit Link</label>
             <input
               id="link"
               name="link"

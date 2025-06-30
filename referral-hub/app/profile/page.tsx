@@ -94,7 +94,7 @@ export default function ProfilePage() {
     <div className="max-w-2xl mx-auto p-8 bg-gradient-to-br from-blue-50 to-white min-h-screen rounded-xl shadow-xl">
       <h2 className="text-3xl font-extrabold mb-6 text-blue-700 flex items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 15c2.485 0 4.797.607 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-        My Referrals
+        My Picks
       </h2>
       {errorMsg && <div className="text-red-600 mb-2 font-semibold bg-red-100 p-2 rounded">{errorMsg}</div>}
       {successMsg && <div className="text-green-600 mb-2 font-semibold bg-green-100 p-2 rounded">{successMsg}</div>}
@@ -114,7 +114,7 @@ export default function ProfilePage() {
                     <option value="others">Others</option>
                   </select>
                   <input type="datetime-local" name="expiration" value={editForm.expiration} onChange={handleEditChange} required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500" />
-                  <input type="text" name="url" value={editForm.url} onChange={handleEditChange} required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500" placeholder="Referral Link" />
+                  <input type="text" name="url" value={editForm.url} onChange={handleEditChange} required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500" placeholder="Benefit Link" />
                   <div className="flex gap-2 mt-2">
                     <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">Save</button>
                     <button type="button" className="bg-gray-300 px-4 py-2 rounded shadow hover:bg-gray-400" onClick={() => setEditId(null)}>Cancel</button>

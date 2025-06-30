@@ -12,13 +12,13 @@ export default function AboutPage() {
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-8 w-8 sm:h-12 sm:w-12 text-white/90 animate-bounce">
             <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
           </svg>
-          ReferralHub
+          ShareHub
         </h1>
         <p className="text-lg sm:text-2xl md:text-3xl font-medium max-w-xs sm:max-w-2xl text-center mb-2 animate-fade-in delay-100 text-white/90">
-          Discover, share, and benefit from the world’s best referral programs!
+          Explore, share, and support your favorite finds in the world’s go-to sharing community!
         </p>
         <p className="text-blue-100/90 text-base sm:text-lg md:text-xl font-light max-w-xs sm:max-w-xl text-center animate-fade-in delay-200">
-          Earn rewards, help friends, and unlock exclusive deals—all in one place.
+          Real people. Real picks. All in one place.
         </p>
         <p className="text-blue-100/90 text-xs sm:text-base md:text-lg font-light max-w-xs sm:max-w-xl text-center animate-fade-in delay-300 mt-2">
           <span className="font-semibold text-white/90">Author & Contact:</span> <a href="mailto:cholycy@gmail.com" className="underline hover:text-blue-200">cholycy@gmail.com</a><br />
@@ -41,70 +41,70 @@ export default function AboutPage() {
               <span className="text-3xl">💳</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Credit Card</span>
-                <div className="text-gray-600 text-sm">Earn bonus points or cashback by referring credit cards.</div>
+                <div className="text-gray-600 text-sm">Share card picks that earn you points, perks, or cashback — and help others find great rewards too.</div>
               </div>
             </div>
             <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
               <span className="text-3xl">🏦</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Bank / Investment</span>
-                <div className="text-gray-600 text-sm">Refer friends to open bank accounts, stock or crypto platforms.</div>
+                <div className="text-gray-600 text-sm">Invite friends to banking apps or investment platforms you trust — from stocks to crypto.</div>
               </div>
             </div>
             <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
               <span className="text-3xl">📶</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Mobile / Internet</span>
-                <div className="text-gray-600 text-sm">Share deals from mobile carriers, home internet, or eSIM services.</div>
+                <div className="text-gray-600 text-sm">Recommend mobile plans, eSIMs, or home internet services that worked well for you.</div>
               </div>
             </div>
             <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
               <span className="text-3xl">🛒</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Shopping / Cashback</span>
-                <div className="text-gray-600 text-sm">Refer people to platforms like Rakuten, Honey, or Ibotta.</div>
+                <div className="text-gray-600 text-sm">From Rakuten to Ibotta — share smart ways to earn while you shop.</div>
               </div>
             </div>
             <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
               <span className="text-3xl">📦</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Subscriptions</span>
-                <div className="text-gray-600 text-sm">Include meal kits, pet boxes, streaming or digital tools.</div>
+                <div className="text-gray-600 text-sm">Meal kits, streaming, pet boxes — let others know which subscriptions are actually worth it.</div>
               </div>
             </div>
             <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
               <span className="text-3xl">✈️</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Travel & Transport</span>
-                <div className="text-gray-600 text-sm">Earn rewards by referring Airbnb, Uber, car rentals, and airlines.</div>
+                <div className="text-gray-600 text-sm">Refer your favorite travel apps, flight deals, rideshare credits, or Airbnb discounts.</div>
               </div>
             </div>
             <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
               <span className="text-3xl">🧘</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Health & Fitness</span>
-                <div className="text-gray-600 text-sm">Refer gym memberships, fitness apps, or mental health platforms.</div>
+                <div className="text-gray-600 text-sm">Gym memberships, wellness apps, meditation tools — share what keeps you feeling your best.</div>
               </div>
             </div>
             <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
               <span className="text-3xl">🎓</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Education</span>
-                <div className="text-gray-600 text-sm">Invite others to learning platforms like Coursera, Duolingo, LeetCode.</div>
+                <div className="text-gray-600 text-sm">From coding to languages, invite others to learn with platforms you’ve personally tried.</div>
               </div>
             </div>
             <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
               <span className="text-3xl">🧰</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Apps & Tools</span>
-                <div className="text-gray-600 text-sm">General tech or productivity apps like Notion, Canva, Dropbox.</div>
+                <div className="text-gray-600 text-sm">Share must-have tools like Notion, Canva, or Dropbox — the ones that make life smoother.</div>
               </div>
             </div>
             <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md col-span-1 sm:col-span-2 lg:col-span-1">
               <span className="text-3xl">🌀</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Others</span>
-                <div className="text-gray-600 text-sm">Any referrals that don’t fit above — clubs, memberships, etc.</div>
+                <div className="text-gray-600 text-sm">Got something unique? Share cool finds — from niche clubs to exclusive memberships.</div>
               </div>
             </div>
           </div>
