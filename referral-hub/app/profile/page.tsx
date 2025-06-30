@@ -99,7 +99,7 @@ export default function ProfilePage() {
       {errorMsg && <div className="text-red-600 mb-2 font-semibold bg-red-100 p-2 rounded">{errorMsg}</div>}
       {successMsg && <div className="text-green-600 mb-2 font-semibold bg-green-100 p-2 rounded">{successMsg}</div>}
       {referrals.length === 0 ? (
-        <div className="text-gray-600 bg-white rounded p-6 shadow text-center">You have not submitted any referrals yet.</div>
+        <div className="text-gray-600 bg-white rounded p-6 shadow text-center">You haven’t posted any picks yet. Share something you love!</div>
       ) : (
         <div className="space-y-6">
           {referrals.map((ref) => (

@@ -91,9 +91,9 @@ export default function SubmitReferral() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 p-2">
       <section className="w-full max-w-xl bg-white/70 rounded-3xl shadow-2xl border border-blue-100 p-8 md:p-12 flex flex-col gap-6 backdrop-blur-md animate-fade-in">
-        <h1 className="text-3xl md:text-4xl font-extrabold text-blue-700 mb-2 text-center flex items-center gap-2">
+        <h1 className="text-3xl md:text-3xl font-extrabold text-blue-700 mb-2 text-center flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-          Share Your Favorite Deal
+          Share a Deal You Love
         </h1>
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div>
@@ -111,13 +111,13 @@ export default function SubmitReferral() {
             />
           </div>
           <div>
-            <label htmlFor="description" className="block text-blue-800 font-semibold mb-1">What do you love about this?</label>
+            <label htmlFor="description" className="block text-blue-800 font-semibold mb-1">Why do you recommend this?</label>
             <textarea
               id="description"
               name="description"
               rows={3}
               className="w-full rounded-xl border border-blue-200 px-4 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm resize-none text-blue-900 placeholder:text-blue-500"
-              placeholder="Describe the referral program and benefits..."
+              placeholder="I use this because..."
               value={form.description}
               onChange={handleChange}
               required
