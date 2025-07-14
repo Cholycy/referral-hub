@@ -23,6 +23,29 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+function TruncatedDescription({ description }: { description: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const words = description.split(/\s+/);
+  const isTruncated = words.length > 100;
+  const displayText = expanded || !isTruncated ? description : words.slice(0, 100).join(' ') + '...';
+
+  return (
+    <div>
+      <div className="text-gray-700 text-base mb-1">
+        {displayText}
+      </div>
+      {isTruncated && (
+        <button
+          className="text-blue-700 underline text-xs mt-1"
+          onClick={() => setExpanded((e) => !e)}
+        >
+          {expanded ? 'Read less' : 'Read more'}
+        </button>
+      )}
+    </div>
+  );
+}
+
 function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -358,12 +381,12 @@ function HomeContent() {
                       )}
                     </div>
                     {ref.description && (
-                      <div className="text-gray-700 text-base mb-1">{ref.description}</div>
+                      <TruncatedDescription description={ref.description} />
                     )}
                     <div className="flex flex-wrap gap-2 text-xs text-gray-500 mt-1">
                       {ref.expiration_date && (
                         <span className="px-2 py-1 bg-gray-200 rounded">
-                          Expires: {new Date(ref.expiration_date.replace(' ', 'T')).toLocaleString()}
+                          Expires: {new Date(ref.expiration_date.replace(' ', 'T')).toLocaleDateString()}
                         </span>
                       )}
                     </div>
@@ -422,7 +445,7 @@ function HomeContent() {
               )}
             </>
           ) : (
-            <p className="text-gray-700 text-lg">Please login to see available referrals.</p>
+            <p className="text-gray-700 text-lg">Sign in to view what others are sharing.</p>
           )}
         </section>
       </main>

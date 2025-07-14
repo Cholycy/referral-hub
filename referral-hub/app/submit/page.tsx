@@ -22,7 +22,11 @@ export default function SubmitReferral() {
     title: "",
     description: "",
     category: "credit card",
-    expiration: "",
+    expiration: (() => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return today.toISOString().slice(0, 10); // YYYY-MM-DD
+    })(),
     link: "",
   });
   const [loading, setLoading] = useState(false);
@@ -56,11 +60,10 @@ export default function SubmitReferral() {
       return;
     }
     setLoading(true);
-    // Format expiration as 'YYYY-MM-DD HH:mm:00+00'
+    // Format expiration as 'YYYY-MM-DD 00:00:00+00'
     let formattedExpiration = form.expiration;
-    if (formattedExpiration.length === 16) {
-      // If input is 'YYYY-MM-DDTHH:mm', convert to 'YYYY-MM-DD HH:mm:00+00'
-      formattedExpiration = formattedExpiration.replace('T', ' ') + ':00+00';
+    if (formattedExpiration.length === 10) {
+      formattedExpiration = formattedExpiration + ' 00:00:00+00';
     }
     const { error } = await supabase.from("referrals").insert([
       {
@@ -121,7 +124,7 @@ export default function SubmitReferral() {
               value={form.description}
               onChange={handleChange}
               required
-              maxLength={150}
+              maxLength={500}
             />
           </div>
           <div>
@@ -163,7 +166,7 @@ export default function SubmitReferral() {
             <input
               id="expiration"
               name="expiration"
-              type="datetime-local"
+              type="date"
               className="w-full rounded-xl border border-blue-200 px-4 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm text-blue-900 placeholder:text-blue-500"
               value={form.expiration}
               onChange={handleChange}
