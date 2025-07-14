@@ -94,21 +94,38 @@ function HomeContent() {
   useEffect(() => {
     const fetchVotes = async () => {
       if (!referrals.length) return;
-      const { data, error } = await supabase
+
+      const { data: votesData, error } = await supabase
         .from("referral_user_votes")
-        .select("referral_id, vote_type");
-      if (!error && data) {
+        .select("referral_id, vote_type, user_id");
+
+      if (!error && votesData) {
         const voteMap: Record<string, { up: number; down: number }> = {};
-        data.forEach((v: any) => {
-          if (!voteMap[v.referral_id]) voteMap[v.referral_id] = { up: 0, down: 0 };
+        const userVoteMap: Record<string, "up" | "down" | null> = {};
+        const currentUserId = user?.id; // Or use your auth logic
+
+        votesData.forEach((v: any) => {
+          // Track vote counts
+          if (!voteMap[v.referral_id]) {
+            voteMap[v.referral_id] = { up: 0, down: 0 };
+          }
           if (v.vote_type === "up") voteMap[v.referral_id].up += 1;
           if (v.vote_type === "down") voteMap[v.referral_id].down += 1;
+
+          // Track user's vote per referral
+          if (v.user_id === currentUserId) {
+            userVoteMap[v.referral_id] = v.vote_type;
+          }
         });
-        setVotes(voteMap);
+
+        setVotes(voteMap);           // Global vote counts
+        setUserVotes(userVoteMap);   // Current user’s votes
       }
     };
+
     fetchVotes();
   }, [referrals]);
+
 
   // Fetch user votes for all referrals
   useEffect(() => {
@@ -190,276 +207,280 @@ function HomeContent() {
     if (!user) return;
     setVoteLoading((prev) => ({ ...prev, [referralId]: true }));
     const currentVote = userVotes[referralId] || null;
-    let newVotes = { ...votes[referralId] };
+    const updatedVotes = { ...votes[referralId] || { up: 0, down: 0 } };
     let newUserVote: "up" | "down" | null = type;
-    if (currentVote === type) {
-      // Double click: revert vote
-      newVotes[type] = (newVotes[type] || 1) - 1;
-      newUserVote = null;
-      await supabase.from("referral_user_votes").delete().eq("referral_id", referralId).eq("user_id", user.id);
-    } else {
-      // Remove previous vote if exists
-      if (currentVote) {
-        newVotes[currentVote] = (newVotes[currentVote] || 1) - 1;
+    try {
+      if (currentVote === type) {
+        const { error } = await supabase.from("referral_user_votes").delete().eq("referral_id", referralId).eq("user_id", user.id);
+        if (error) throw error;
+
+        updatedVotes[type] = Math.max(0, (updatedVotes[type] || 1) - 1);
+        newUserVote = null; // Double click: revert vote
+      } else {
+        const { error } = await supabase.from("referral_user_votes").upsert([{
+          referral_id: referralId,
+          user_id: user.id,
+          vote_type: type,
+        },
+        ], {
+          onConflict: 'referral_id, user_id', // Ensure we don't duplicate votes  
+         }); 
+        if (error) throw error;
+        if (currentVote) {
+          updatedVotes[currentVote] = Math.max(0, (updatedVotes[currentVote] || 1) - 1);
+        }
+        updatedVotes[type] = (updatedVotes[type] || 0) + 1; // Increment the new vote type
       }
-      newVotes[type] = (newVotes[type] || 0) + 1;
-      await supabase.from("referral_user_votes").upsert({
-        referral_id: referralId,
-        user_id: user.id,
-        vote_type: type,
-      });
-    }
-    // Update aggregate votes table
-    await supabase.from("referral_votes").upsert({
-      referral_id: referralId,
-      up: newVotes.up || 0,
-      down: newVotes.down || 0,
-    });
-    setVotes((prev) => ({ ...prev, [referralId]: { up: newVotes.up || 0, down: newVotes.down || 0 } }));
-    setUserVotes((prev) => ({ ...prev, [referralId]: newUserVote }));
-    setVoteLoading((prev) => ({ ...prev, [referralId]: false }));
-  };
 
-  const handleLoginLogout = () => {
-    if (user) {
-      // If logged in, log out and redirect
-      router.push('/logout');
-    } else {
-      // If not logged in, show login form
-      setShowLoginForm(true);
+      setVotes((prev) => ({ ...prev, [referralId]: { up: updatedVotes.up || 0, down: updatedVotes.down || 0 } }));
+      setUserVotes((prev) => ({ ...prev, [referralId]: newUserVote }));
+    } catch (error) {
+      console.error("Vote failed:", error);
+    } finally {
+      setVoteLoading((prev) => ({ ...prev, [referralId]: false }));
     }
   };
 
-  useEffect(() => {
-    // Listen for login-logout-click event from nav
-    const handler = () => handleLoginLogout();
-    window.addEventListener('login-logout-click', handler);
-    return () => window.removeEventListener('login-logout-click', handler);
-  }, [user]);
+    const handleLoginLogout = () => {
+      if (user) {
+        // If logged in, log out and redirect
+        router.push('/logout');
+      } else {
+        // If not logged in, show login form
+        setShowLoginForm(true);
+      }
+    };
 
-  const filteredReferrals = searchCategory
-    ? referrals.filter((ref) => {
-      const q = searchCategory.toLowerCase();
-      return (
-        (ref.title && ref.title.toLowerCase().includes(q)) ||
-        (ref.description && ref.description.toLowerCase().includes(q)) ||
-        (ref.category && ref.category.toLowerCase().includes(q)) ||
-        (ref.url && ref.url.toLowerCase().includes(q))
-      );
-    })
-    : referrals;
+    useEffect(() => {
+      // Listen for login-logout-click event from nav
+      const handler = () => handleLoginLogout();
+      window.addEventListener('login-logout-click', handler);
+      return () => window.removeEventListener('login-logout-click', handler);
+    }, [user]);
+
+    const filteredReferrals = searchCategory
+      ? referrals.filter((ref) => {
+        const q = searchCategory.toLowerCase();
+        return (
+          (ref.title && ref.title.toLowerCase().includes(q)) ||
+          (ref.description && ref.description.toLowerCase().includes(q)) ||
+          (ref.category && ref.category.toLowerCase().includes(q)) ||
+          (ref.url && ref.url.toLowerCase().includes(q))
+        );
+      })
+      : referrals;
 
 
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-      {/* Reset Password Modal */}
-      {showResetForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm animate-fade-in border border-blue-100">
-            <h2 className="text-xl font-bold mb-3 text-blue-700">Reset Password</h2>
-            <form onSubmit={handleSendReset} className="flex flex-col gap-3">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
-                value={resetEmail}
-                onChange={e => setResetEmail(e.target.value)}
-                required
-              />
-              <button type="submit" className="bg-blue-600 text-white rounded px-4 py-2 font-bold hover:bg-blue-700">Send Reset Link</button>
-              <button type="button" className="text-blue-600 underline mt-1" onClick={() => setShowResetForm(false)}>Cancel</button>
-              {resetMsg && <div className="text-sm text-center mt-2 text-blue-700">{resetMsg}</div>}
-            </form>
-          </div>
-        </div>
-      )}
-      {showLoginForm && (
-        <div className="p-6 max-w-md mx-auto bg-white rounded-2xl shadow-lg my-8 border border-blue-100 animate-fade-in">
-          <h3 className="text-2xl font-bold mb-4 text-blue-700 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-6 w-6 text-blue-500">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
-            </svg>
-            {isSignUp ? "Sign Up" : "Login"} with Email
-          </h3>
-
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full mb-2 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full mb-2 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-
-          <div className="flex flex-wrap gap-2 items-center mb-2">
-            {isSignUp ? (
-              <button
-                onClick={handleSignUp}
-                disabled={!email || !password}
-                className={`bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 ${(!email || !password) ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                Sign Up
-              </button>
-            ) : (
-              <button
-                onClick={handleEmailLogin}
-                disabled={!email || !password}
-                className={`bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 ${(!email || !password) ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                Login
-              </button>
-            )}
-
-            <button onClick={handleForgotPassword} className="text-sm text-blue-600 underline">
-              Forgot Password?
-            </button>
-
-            {isSignUp ? (
-              <button
-                onClick={() => setIsSignUp(false)}
-                className="text-sm text-gray-700 underline"
-              >
-                Already have an account? Login
-              </button>
-            ) : (
-              <button
-                onClick={() => router.push('/signup')}
-                className="text-sm text-blue-600 underline"
-              >
-                New user? Sign up
-              </button>
-            )}
-          </div>
-
-          {signUpMsg && (
-            <div className="text-center text-blue-700 mt-2">
-              {signUpMsg}
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+        {/* Reset Password Modal */}
+        {showResetForm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+            <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm animate-fade-in border border-blue-100">
+              <h2 className="text-xl font-bold mb-3 text-blue-700">Reset Password</h2>
+              <form onSubmit={handleSendReset} className="flex flex-col gap-3">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
+                  value={resetEmail}
+                  onChange={e => setResetEmail(e.target.value)}
+                  required
+                />
+                <button type="submit" className="bg-blue-600 text-white rounded px-4 py-2 font-bold hover:bg-blue-700">Send Reset Link</button>
+                <button type="button" className="text-blue-600 underline mt-1" onClick={() => setShowResetForm(false)}>Cancel</button>
+                {resetMsg && <div className="text-sm text-center mt-2 text-blue-700">{resetMsg}</div>}
+              </form>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+        {showLoginForm && (
+          <div className="p-6 max-w-md mx-auto bg-white rounded-2xl shadow-lg my-8 border border-blue-100 animate-fade-in">
+            <h3 className="text-2xl font-bold mb-4 text-blue-700 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-6 w-6 text-blue-500">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+              </svg>
+              {isSignUp ? "Sign Up" : "Login"} with Email
+            </h3>
 
-      <main className="p-8">
-        {/* Description Section removed and moved to About page */}
-        <section className="bg-white p-8 rounded-2xl shadow-xl max-w-4xl mx-auto border border-blue-100 animate-fade-in">
-          <h2 className="text-3xl font-extrabold mb-6 text-blue-700 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-8 w-8 text-blue-500">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
-            </svg>
-            Real Deals from Real People
-          </h2>
-          {user && (
-            <>
-              <input
-                type="text"
-                placeholder="Search by keyword..."
-                value={searchCategory}
-                onChange={(e) => setSearchCategory(e.target.value)}
-                className="w-full md:w-64 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
-              />
-              <div className="h-6" />
-            </>
-          )}
-          {user ? (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredReferrals.slice(0, visibleCount).map((ref) => (
-                  <div key={ref.id} className="bg-gradient-to-br from-blue-100 to-white border border-blue-200 rounded-xl shadow-md p-6 flex flex-col gap-2 hover:shadow-lg transition-shadow">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="text-xl font-bold text-blue-700">{ref.title}</div>
-                      {ref.category && (
-                        <span className="px-2 py-1 bg-blue-200 text-blue-800 rounded text-xs font-semibold">
-                          {ref.category.charAt(0).toUpperCase() + ref.category.slice(1)}
-                        </span>
-                      )}
-                    </div>
-                    {ref.description && (
-                      <TruncatedDescription description={ref.description} />
-                    )}
-                    <div className="flex flex-wrap gap-2 text-xs text-gray-500 mt-1">
-                      {ref.expiration_date && (
-                        <span className="px-2 py-1 bg-gray-200 rounded">
-                          Expires: {new Date(ref.expiration_date.replace(' ', 'T')).toLocaleDateString()}
-                        </span>
-                      )}
-                    </div>
-                    {ref.url && (
-                      <a
-                        href={ref.url}
-                        className="text-blue-600 underline break-all font-mono"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {(() => {
-                          try {
-                            const u = new URL(ref.url);
-                            const path = u.pathname.length > 12 ? u.pathname.slice(0, 12) + "..." : u.pathname;
-                            return `${u.hostname}${path}`;
-                          } catch {
-                            return ref.url.length > 24 ? ref.url.slice(0, 24) + "..." : ref.url;
-                          }
-                        })()}
-                      </a>
-                    )}
-                    <div className="flex gap-4 mt-2 items-center">
-                      <button
-                        className={`flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50 ${userVotes[ref.id] === 'up' ? 'ring-2 ring-green-400' : ''}`}
-                        onClick={() => handleVote(ref.id, 'up')}
-                        onDoubleClick={() => handleVote(ref.id, 'up')}
-                        disabled={voteLoading[ref.id]}
-                        aria-label="Useful"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                        {votes[ref.id]?.up || 0}
-                      </button>
-                      <button
-                        className={`flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50 ${userVotes[ref.id] === 'down' ? 'ring-2 ring-red-400' : ''}`}
-                        onClick={() => handleVote(ref.id, 'down')}
-                        onDoubleClick={() => handleVote(ref.id, 'down')}
-                        disabled={voteLoading[ref.id]}
-                        aria-label="Useless"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                        {votes[ref.id]?.down || 0}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {referrals.length > visibleCount && (
-                <div className="flex justify-center mt-6">
-                  <button
-                    className="px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition"
-                    onClick={() => setVisibleCount((c) => c + 12)}
-                  >
-                    Show more
-                  </button>
-                </div>
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full mb-2 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full mb-2 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+
+            <div className="flex flex-wrap gap-2 items-center mb-2">
+              {isSignUp ? (
+                <button
+                  onClick={handleSignUp}
+                  disabled={!email || !password}
+                  className={`bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 ${(!email || !password) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  Sign Up
+                </button>
+              ) : (
+                <button
+                  onClick={handleEmailLogin}
+                  disabled={!email || !password}
+                  className={`bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 ${(!email || !password) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  Login
+                </button>
               )}
-            </>
-          ) : (
-            <p className="text-gray-700 text-lg">Sign in to view what others are sharing.</p>
-          )}
-        </section>
-      </main>
-      <footer className="text-center text-sm text-gray-500 p-6 mt-8">
-        © 2025 ShareHub. All rights reserved.
-      </footer>
-    </div>
-  );
-}
 
-export default function Home() {
-  return (
-    <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
-      <HomeContent />
-    </Suspense>
-  );
-}
+              <button onClick={handleForgotPassword} className="text-sm text-blue-600 underline">
+                Forgot Password?
+              </button>
+
+              {isSignUp ? (
+                <button
+                  onClick={() => setIsSignUp(false)}
+                  className="text-sm text-gray-700 underline"
+                >
+                  Already have an account? Login
+                </button>
+              ) : (
+                <button
+                  onClick={() => router.push('/signup')}
+                  className="text-sm text-blue-600 underline"
+                >
+                  New user? Sign up
+                </button>
+              )}
+            </div>
+
+            {signUpMsg && (
+              <div className="text-center text-blue-700 mt-2">
+                {signUpMsg}
+              </div>
+            )}
+          </div>
+        )}
+
+        <main className="p-8">
+          {/* Description Section removed and moved to About page */}
+          <section className="bg-white p-8 rounded-2xl shadow-xl max-w-4xl mx-auto border border-blue-100 animate-fade-in">
+            <h2 className="text-3xl font-extrabold mb-6 text-blue-700 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-8 w-8 text-blue-500">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+              </svg>
+              Real Deals from Real People
+            </h2>
+            {user && (
+              <>
+                <input
+                  type="text"
+                  placeholder="Search by keyword..."
+                  value={searchCategory}
+                  onChange={(e) => setSearchCategory(e.target.value)}
+                  className="w-full md:w-64 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
+                />
+                <div className="h-6" />
+              </>
+            )}
+            {user ? (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {filteredReferrals.slice(0, visibleCount).map((ref) => (
+                    <div key={ref.id} className="bg-gradient-to-br from-blue-100 to-white border border-blue-200 rounded-xl shadow-md p-6 flex flex-col gap-2 hover:shadow-lg transition-shadow">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="text-xl font-bold text-blue-700">{ref.title}</div>
+                        {ref.category && (
+                          <span className="px-2 py-1 bg-blue-200 text-blue-800 rounded text-xs font-semibold">
+                            {ref.category.charAt(0).toUpperCase() + ref.category.slice(1)}
+                          </span>
+                        )}
+                      </div>
+                      {ref.description && (
+                        <TruncatedDescription description={ref.description} />
+                      )}
+                      <div className="flex flex-wrap gap-2 text-xs text-gray-500 mt-1">
+                        {ref.expiration_date && (
+                          <span className="px-2 py-1 bg-gray-200 rounded">
+                            Expires: {new Date(ref.expiration_date.replace(' ', 'T')).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                      {ref.url && (
+                        <a
+                          href={ref.url}
+                          className="text-blue-600 underline break-all font-mono"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {(() => {
+                            try {
+                              const u = new URL(ref.url);
+                              const path = u.pathname.length > 12 ? u.pathname.slice(0, 12) + "..." : u.pathname;
+                              return `${u.hostname}${path}`;
+                            } catch {
+                              return ref.url.length > 24 ? ref.url.slice(0, 24) + "..." : ref.url;
+                            }
+                          })()}
+                        </a>
+                      )}
+                      <div className="flex gap-4 mt-2 items-center">
+                        <button
+                          className={`flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50 ${userVotes[ref.id] === 'up' ? 'ring-2 ring-green-400' : ''}`}
+                          onClick={() => handleVote(ref.id, 'up')}
+                          onDoubleClick={() => handleVote(ref.id, 'up')}
+                          disabled={voteLoading[ref.id]}
+                          aria-label="Useful"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+                          {votes[ref.id]?.up || 0}
+                        </button>
+                        <button
+                          className={`flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50 ${userVotes[ref.id] === 'down' ? 'ring-2 ring-red-400' : ''}`}
+                          onClick={() => handleVote(ref.id, 'down')}
+                          onDoubleClick={() => handleVote(ref.id, 'down')}
+                          disabled={voteLoading[ref.id]}
+                          aria-label="Useless"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                          {votes[ref.id]?.down || 0}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {referrals.length > visibleCount && (
+                  <div className="flex justify-center mt-6">
+                    <button
+                      className="px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition"
+                      onClick={() => setVisibleCount((c) => c + 12)}
+                    >
+                      Show more
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="text-gray-700 text-lg">Sign in to view what others are sharing.</p>
+            )}
+          </section>
+        </main>
+        <footer className="text-center text-sm text-gray-500 p-6 mt-8">
+          © 2025 ShareHub. All rights reserved.
+        </footer>
+      </div>
+    );
+  }
+
+  export default function Home() {
+    return (
+      <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+        <HomeContent />
+      </Suspense>
+    );
+  }
