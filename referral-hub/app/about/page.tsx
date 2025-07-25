@@ -2,8 +2,18 @@
 Copyright (c) 2025 cholycy@gmail.com
 All rights reserved.
 */
+'use client';
+import { useRouter } from "next/navigation";
 
 export default function AboutPage() {
+  const router = useRouter();
+
+  // Helper to handle category click
+  const handleCategoryClick = (category: string) => {
+    // Use encodeURIComponent for safety
+    router.push(`/?category=${encodeURIComponent(category)}`);
+  };
+
   return (
     <main className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 p-0">
       {/* Hero Section */}
@@ -37,70 +47,70 @@ export default function AboutPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
             {/* Category Card Example */}
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md cursor-pointer hover:bg-blue-50 transition" onClick={() => handleCategoryClick('credit card')} tabIndex={0} role="button">
               <span className="text-3xl">💳</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Credit Card</span>
                 <div className="text-gray-600 text-sm">Share card picks that earn you points, perks, or cashback — and help others find great rewards too.</div>
               </div>
             </div>
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md cursor-pointer hover:bg-blue-50 transition" onClick={() => handleCategoryClick('bank / investment')} tabIndex={0} role="button">
               <span className="text-3xl">🏦</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Bank / Investment</span>
                 <div className="text-gray-600 text-sm">Invite friends to banking apps or investment platforms you trust — from stocks to crypto.</div>
               </div>
             </div>
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md cursor-pointer hover:bg-blue-50 transition" onClick={() => handleCategoryClick('mobile / internet')} tabIndex={0} role="button">
               <span className="text-3xl">📶</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Mobile / Internet</span>
                 <div className="text-gray-600 text-sm">Recommend mobile plans, eSIMs, or home internet services that worked well for you.</div>
               </div>
             </div>
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md cursor-pointer hover:bg-blue-50 transition" onClick={() => handleCategoryClick('shopping / cashback')} tabIndex={0} role="button">
               <span className="text-3xl">🛒</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Shopping / Cashback</span>
                 <div className="text-gray-600 text-sm">From Rakuten to Ibotta — share smart ways to earn while you shop.</div>
               </div>
             </div>
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md cursor-pointer hover:bg-blue-50 transition" onClick={() => handleCategoryClick('subscriptions')} tabIndex={0} role="button">
               <span className="text-3xl">📦</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Subscriptions</span>
                 <div className="text-gray-600 text-sm">Meal kits, streaming, pet boxes — let others know which subscriptions are actually worth it.</div>
               </div>
             </div>
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md cursor-pointer hover:bg-blue-50 transition" onClick={() => handleCategoryClick('travel & transport')} tabIndex={0} role="button">
               <span className="text-3xl">✈️</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Travel & Transport</span>
                 <div className="text-gray-600 text-sm">Refer your favorite travel apps, flight deals, rideshare credits, or Airbnb discounts.</div>
               </div>
             </div>
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md cursor-pointer hover:bg-blue-50 transition" onClick={() => handleCategoryClick('health & fitness')} tabIndex={0} role="button">
               <span className="text-3xl">🧘</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Health & Fitness</span>
                 <div className="text-gray-600 text-sm">Gym memberships, wellness apps, meditation tools — share what keeps you feeling your best.</div>
               </div>
             </div>
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md cursor-pointer hover:bg-blue-50 transition" onClick={() => handleCategoryClick('education')} tabIndex={0} role="button">
               <span className="text-3xl">🎓</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Education</span>
                 <div className="text-gray-600 text-sm">From coding to languages, invite others to learn with platforms you’ve personally tried.</div>
               </div>
             </div>
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md cursor-pointer hover:bg-blue-50 transition" onClick={() => handleCategoryClick('apps & tools')} tabIndex={0} role="button">
               <span className="text-3xl">🧰</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Apps & Tools</span>
                 <div className="text-gray-600 text-sm">Share must-have tools like Notion, Canva, or Dropbox — the ones that make life smoother.</div>
               </div>
             </div>
-            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md col-span-1 sm:col-span-2 lg:col-span-1">
+            <div className="flex items-start gap-4 bg-white/80 rounded-2xl shadow-lg p-5 border border-blue-100/40 backdrop-blur-md col-span-1 sm:col-span-2 lg:col-span-1 cursor-pointer hover:bg-blue-50 transition" onClick={() => handleCategoryClick('others')} tabIndex={0} role="button">
               <span className="text-3xl">🌀</span>
               <div>
                 <span className="font-semibold text-blue-800 text-lg">Others</span>
