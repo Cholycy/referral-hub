@@ -45,6 +45,7 @@ export default function RootLayout({
               <Link href="/about" className="rounded-lg px-3 py-1 text-white/90 text-lg md:text-xl font-bold hover:bg-white/20 hover:text-yellow-200 transition font-medium">About</Link>
               <Link href="/" className="rounded-lg px-3 py-1 text-white/90 text-lg md:text-xl font-bold hover:bg-white/20 hover:text-yellow-200 transition font-medium">Dashboard</Link>
               <Link href="/submit" className="rounded-lg px-3 py-1 text-white/90 text-lg md:text-xl font-bold hover:bg-white/20 hover:text-yellow-200 transition font-medium">Submit</Link>
+              <Link href="/request" className="rounded-lg px-3 py-1 text-white/90 text-lg md:text-xl font-bold hover:bg-white/20 hover:text-yellow-200 transition font-medium">Request</Link>
               <Link href="/profile" className="rounded-lg px-3 py-1 text-white/90 text-lg md:text-xl font-bold hover:bg-white/20 hover:text-yellow-200 transition font-medium">Profile</Link>
               <button
                 onClick={() => {
@@ -76,6 +77,7 @@ export default function RootLayout({
                 <Link href="/about" className="block px-4 py-2 text-blue-700 font-semibold hover:bg-blue-50" onClick={() => setMobileMenuOpen(false)}>About</Link>
                 <Link href="/" className="block px-4 py-2 text-blue-700 font-semibold hover:bg-blue-50" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
                 <Link href="/submit" className="block px-4 py-2 text-blue-700 font-semibold hover:bg-blue-50" onClick={() => setMobileMenuOpen(false)}>Submit</Link>
+                <Link href="/request" className="block px-4 py-2 text-blue-700 font-semibold hover:bg-blue-50" onClick={() => setMobileMenuOpen(false)}>Request</Link>
                 <Link href="/profile" className="block px-4 py-2 text-blue-700 font-semibold hover:bg-blue-50" onClick={() => setMobileMenuOpen(false)}>Profile</Link>
                 <button
                   className="block w-full text-left px-4 py-2 text-blue-700 font-semibold hover:bg-blue-50"

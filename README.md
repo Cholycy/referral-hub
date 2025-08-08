@@ -17,7 +17,7 @@ cd referral-hub
 ```bash
 npm install @supabase/supabase-js tailwindcss postcss autoprefixer 
 npm install @supabase/auth-helpers-nextjs
-
+npm install embla-carousel embla-carousel-autoplay embla-carousel-react
 ```
 ## 3. Create a .env.local file in your project root:
 ```bash
