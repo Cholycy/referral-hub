@@ -368,15 +368,26 @@ function HomeContent() {
         </div>
       )}
 
-      <main className="p-8">
-        {/* Description Section removed and moved to About page */}
-        <section className="bg-white p-8 rounded-2xl shadow-xl max-w-4xl mx-auto border border-blue-100 animate-fade-in">
-          <h2 className="text-3xl font-extrabold mb-6 text-blue-700 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-8 w-8 text-blue-500">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+      <main className="p-4 sm:p-8">
+        <section className="bg-white p-4 sm:p-8 rounded-2xl shadow-xl max-w-4xl mx-auto border border-blue-100 animate-fade-in">
+          <h2 className="text-xl sm:text-3xl font-extrabold mb-4 sm:mb-6 text-blue-700 flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z"
+              />
             </svg>
             Real Deals from Real People
           </h2>
+
           {user && (
             <>
               <input
@@ -384,34 +395,37 @@ function HomeContent() {
                 placeholder="Search by keyword..."
                 value={searchCategory}
                 onChange={(e) => setSearchCategory(e.target.value)}
-                className="w-full md:w-64 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
+                className="w-full sm:w-64 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
               />
-              <div className="h-6" />
+              <div className="h-4 sm:h-6" />
             </>
           )}
+
           {user ? (
             <>
               <div className="flex flex-col divide-y divide-gray-200">
                 {filteredReferrals.slice(0, visibleCount).map((ref) => (
                   <div
                     key={ref.id}
-                    className="flex gap-4 py-4 hover:bg-gray-50 transition"
+                    className="flex gap-2 sm:gap-4 py-4 hover:bg-gray-50 transition"
                   >
                     {/* Voting column */}
-                    <div className="flex flex-col items-center w-12 shrink-0">
+                    <div className="flex flex-col items-center w-10 sm:w-12 shrink-0">
                       <button
                         className={`p-1 text-gray-500 hover:text-green-600 disabled:opacity-50 
-                      ${userVotes[ref.id] === "up" ? "text-green-600 font-bold" : ""}`}
+                    ${userVotes[ref.id] === "up" ? "text-green-600 font-bold" : ""}`}
                         onClick={() => handleVote(ref.id, "up")}
                         disabled={voteLoading[ref.id]}
                         aria-label="Upvote"
                       >
                         ▲
                       </button>
-                      <span className="text-sm font-medium">{(votes[ref.id]?.up || 0) - (votes[ref.id]?.down || 0)}</span>
+                      <span className="text-xs sm:text-sm font-medium">
+                        {(votes[ref.id]?.up || 0) - (votes[ref.id]?.down || 0)}
+                      </span>
                       <button
                         className={`p-1 text-gray-500 hover:text-red-600 disabled:opacity-50 
-                      ${userVotes[ref.id] === "down" ? "text-red-600 font-bold" : ""}`}
+                    ${userVotes[ref.id] === "down" ? "text-red-600 font-bold" : ""}`}
                         onClick={() => handleVote(ref.id, "down")}
                         disabled={voteLoading[ref.id]}
                         aria-label="Downvote"
@@ -423,21 +437,24 @@ function HomeContent() {
                     {/* Post content */}
                     <div className="flex flex-col flex-1">
                       {/* Header */}
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
                         <span
-                          className={`text-sm font-bold uppercase ${ref.type === "ask" ? "text-pink-600" : "text-blue-600"
+                          className={`text-xs sm:text-sm font-bold uppercase ${ref.type === "ask" ? "text-pink-600" : "text-blue-600"
                             }`}
                         >
                           {ref.type === "ask" ? "[Ask]" : "[Share]"}
                         </span>
-                        <h2 className="text-base font-semibold text-gray-900">{ref.title}</h2>
+                        <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
+                          {ref.title}
+                        </h2>
                         {ref.category && (
                           <span className="px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-700">
                             {ref.category.charAt(0).toUpperCase() + ref.category.slice(1)}
                           </span>
                         )}
                       </div>
-                      {/* Body (depends on type) */}
+
+                      {/* Body */}
                       {ref.type === "ask" ? (
                         <div className="text-sm text-gray-700 space-y-1">
                           {ref.description && <p>{ref.description}</p>}
@@ -447,11 +464,15 @@ function HomeContent() {
                         </div>
                       ) : (
                         <div className="text-sm text-gray-700 space-y-1">
-                          {ref.description && <TruncatedDescription description={ref.description} />}
+                          {ref.description && (
+                            <TruncatedDescription description={ref.description} />
+                          )}
                           {ref.expiration_date && (
                             <span className="text-xs text-gray-500">
-                              ⏳ Expires: {" "}
-                              {new Date(ref.expiration_date.replace(" ", "T")).toLocaleDateString()}
+                              ⏳ Expires:{" "}
+                              {new Date(
+                                ref.expiration_date.replace(" ", "T")
+                              ).toLocaleDateString()}
                             </span>
                           )}
                           {ref.url && (
@@ -478,15 +499,15 @@ function HomeContent() {
                           )}
                         </div>
                       )}
-
                     </div>
                   </div>
                 ))}
+
                 {/* Show more */}
                 {referrals.length > visibleCount && (
                   <div className="flex justify-center py-4">
                     <button
-                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition"
+                      className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition"
                       onClick={() => setVisibleCount((c) => c + 12)}
                     >
                       Show more
@@ -496,7 +517,9 @@ function HomeContent() {
               </div>
             </>
           ) : (
-            <p className="text-gray-700 text-lg">Sign in to view what others are sharing.</p>
+            <p className="text-gray-700 text-base sm:text-lg text-center">
+              Sign in to view what others are sharing.
+            </p>
           )}
         </section>
       </main>
