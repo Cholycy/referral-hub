@@ -50,7 +50,7 @@ function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [user, setUser] = useState<User | null>(null);
-  const [referrals, setReferrals] = useState<Array<{ id: string; title: string; url: string; description?: string; category?: string; expiration_date?: string }>>([]);
+  const [referrals, setReferrals] = useState<Array<{ id: string; title: string; type: String, url?: string; description?: string; category?: string; expiration_date?: string; location?: string }>>([]);
   const [visibleCount, setVisibleCount] = useState(12);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -76,13 +76,15 @@ function HomeContent() {
   useEffect(() => {
     const fetchReferrals = async () => {
       const { data, error } = await supabase
-        .from("referrals")
+        .from("posts_full")
         .select("*")
-        .order("id", { ascending: false }); // order by latest submit (assuming id is serial)
+        .order("created_at", { ascending: false }); // order by latest submit (assuming id is serial)
+      console.log(data); // for debugging
       if (data) setReferrals(data);
     };
     if (user) fetchReferrals();
   }, [user]);
+
 
   useEffect(() => {
     // Show login form if redirected from logout
@@ -224,7 +226,7 @@ function HomeContent() {
         },
         ], {
           onConflict: 'referral_id, user_id', // Ensure we don't duplicate votes  
-         }); 
+        });
         if (error) throw error;
         if (currentVote) {
           updatedVotes[currentVote] = Math.max(0, (updatedVotes[currentVote] || 1) - 1);
@@ -241,246 +243,275 @@ function HomeContent() {
     }
   };
 
-    const handleLoginLogout = () => {
-      if (user) {
-        // If logged in, log out and redirect
-        router.push('/logout');
-      } else {
-        // If not logged in, show login form
-        setShowLoginForm(true);
-      }
-    };
+  const handleLoginLogout = () => {
+    if (user) {
+      // If logged in, log out and redirect
+      router.push('/logout');
+    } else {
+      // If not logged in, show login form
+      setShowLoginForm(true);
+    }
+  };
 
-    useEffect(() => {
-      // Listen for login-logout-click event from nav
-      const handler = () => handleLoginLogout();
-      window.addEventListener('login-logout-click', handler);
-      return () => window.removeEventListener('login-logout-click', handler);
-    }, [user]);
+  useEffect(() => {
+    // Listen for login-logout-click event from nav
+    const handler = () => handleLoginLogout();
+    window.addEventListener('login-logout-click', handler);
+    return () => window.removeEventListener('login-logout-click', handler);
+  }, [user]);
 
-    const filteredReferrals = searchCategory
-      ? referrals.filter((ref) => {
-        const q = searchCategory.toLowerCase();
-        return (
-          (ref.title && ref.title.toLowerCase().includes(q)) ||
-          (ref.description && ref.description.toLowerCase().includes(q)) ||
-          (ref.category && ref.category.toLowerCase().includes(q)) ||
-          (ref.url && ref.url.toLowerCase().includes(q))
-        );
-      })
-      : referrals;
+  const filteredReferrals = searchCategory
+    ? referrals.filter((ref) => {
+      const q = searchCategory.toLowerCase();
+      return (
+        (ref.title && ref.title.toLowerCase().includes(q)) ||
+        (ref.description && ref.description.toLowerCase().includes(q)) ||
+        (ref.category && ref.category.toLowerCase().includes(q)) ||
+        (ref.url && ref.url.toLowerCase().includes(q))
+      );
+    })
+    : referrals;
 
 
 
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-        {/* Reset Password Modal */}
-        {showResetForm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-            <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm animate-fade-in border border-blue-100">
-              <h2 className="text-xl font-bold mb-3 text-blue-700">Reset Password</h2>
-              <form onSubmit={handleSendReset} className="flex flex-col gap-3">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
-                  value={resetEmail}
-                  onChange={e => setResetEmail(e.target.value)}
-                  required
-                />
-                <button type="submit" className="bg-blue-600 text-white rounded px-4 py-2 font-bold hover:bg-blue-700">Send Reset Link</button>
-                <button type="button" className="text-blue-600 underline mt-1" onClick={() => setShowResetForm(false)}>Cancel</button>
-                {resetMsg && <div className="text-sm text-center mt-2 text-blue-700">{resetMsg}</div>}
-              </form>
-            </div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      {/* Reset Password Modal */}
+      {showResetForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm animate-fade-in border border-blue-100">
+            <h2 className="text-xl font-bold mb-3 text-blue-700">Reset Password</h2>
+            <form onSubmit={handleSendReset} className="flex flex-col gap-3">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
+                value={resetEmail}
+                onChange={e => setResetEmail(e.target.value)}
+                required
+              />
+              <button type="submit" className="bg-blue-600 text-white rounded px-4 py-2 font-bold hover:bg-blue-700">Send Reset Link</button>
+              <button type="button" className="text-blue-600 underline mt-1" onClick={() => setShowResetForm(false)}>Cancel</button>
+              {resetMsg && <div className="text-sm text-center mt-2 text-blue-700">{resetMsg}</div>}
+            </form>
           </div>
-        )}
-        {showLoginForm && (
-          <div className="p-6 max-w-md mx-auto bg-white rounded-2xl shadow-lg my-8 border border-blue-100 animate-fade-in">
-            <h3 className="text-2xl font-bold mb-4 text-blue-700 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-6 w-6 text-blue-500">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
-              </svg>
-              {isSignUp ? "Sign Up" : "Login"} with Email
-            </h3>
+        </div>
+      )}
+      {showLoginForm && (
+        <div className="p-6 max-w-md mx-auto bg-white rounded-2xl shadow-lg my-8 border border-blue-100 animate-fade-in">
+          <h3 className="text-2xl font-bold mb-4 text-blue-700 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-6 w-6 text-blue-500">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+            </svg>
+            {isSignUp ? "Sign Up" : "Login"} with Email
+          </h3>
 
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-full mb-2 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full mb-2 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full mb-2 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            className="w-full mb-2 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-            <div className="flex flex-wrap gap-2 items-center mb-2">
-              {isSignUp ? (
-                <button
-                  onClick={handleSignUp}
-                  disabled={!email || !password}
-                  className={`bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 ${(!email || !password) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  Sign Up
-                </button>
-              ) : (
-                <button
-                  onClick={handleEmailLogin}
-                  disabled={!email || !password}
-                  className={`bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 ${(!email || !password) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  Login
-                </button>
-              )}
-
-              <button onClick={handleForgotPassword} className="text-sm text-blue-600 underline">
-                Forgot Password?
+          <div className="flex flex-wrap gap-2 items-center mb-2">
+            {isSignUp ? (
+              <button
+                onClick={handleSignUp}
+                disabled={!email || !password}
+                className={`bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 ${(!email || !password) ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                Sign Up
               </button>
+            ) : (
+              <button
+                onClick={handleEmailLogin}
+                disabled={!email || !password}
+                className={`bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 ${(!email || !password) ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                Login
+              </button>
+            )}
 
-              {isSignUp ? (
-                <button
-                  onClick={() => setIsSignUp(false)}
-                  className="text-sm text-gray-700 underline"
-                >
-                  Already have an account? Login
-                </button>
-              ) : (
-                <button
-                  onClick={() => router.push('/signup')}
-                  className="text-sm text-blue-600 underline"
-                >
-                  New user? Sign up
-                </button>
-              )}
-            </div>
+            <button onClick={handleForgotPassword} className="text-sm text-blue-600 underline">
+              Forgot Password?
+            </button>
 
-            {signUpMsg && (
-              <div className="text-center text-blue-700 mt-2">
-                {signUpMsg}
-              </div>
+            {isSignUp ? (
+              <button
+                onClick={() => setIsSignUp(false)}
+                className="text-sm text-gray-700 underline"
+              >
+                Already have an account? Login
+              </button>
+            ) : (
+              <button
+                onClick={() => router.push('/signup')}
+                className="text-sm text-blue-600 underline"
+              >
+                New user? Sign up
+              </button>
             )}
           </div>
-        )}
 
-        <main className="p-8">
-          {/* Description Section removed and moved to About page */}
-          <section className="bg-white p-8 rounded-2xl shadow-xl max-w-4xl mx-auto border border-blue-100 animate-fade-in">
-            <h2 className="text-3xl font-extrabold mb-6 text-blue-700 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-8 w-8 text-blue-500">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
-              </svg>
-              Real Deals from Real People
-            </h2>
-            {user && (
-              <>
-                <input
-                  type="text"
-                  placeholder="Search by keyword..."
-                  value={searchCategory}
-                  onChange={(e) => setSearchCategory(e.target.value)}
-                  className="w-full md:w-64 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
-                />
-                <div className="h-6" />
-              </>
-            )}
-            {user ? (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {filteredReferrals.slice(0, visibleCount).map((ref) => (
-                    <div key={ref.id} className="bg-gradient-to-br from-blue-100 to-white border border-blue-200 rounded-xl shadow-md p-6 flex flex-col gap-2 hover:shadow-lg transition-shadow">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="text-xl font-bold text-blue-700">{ref.title}</div>
+          {signUpMsg && (
+            <div className="text-center text-blue-700 mt-2">
+              {signUpMsg}
+            </div>
+          )}
+        </div>
+      )}
+
+      <main className="p-8">
+        {/* Description Section removed and moved to About page */}
+        <section className="bg-white p-8 rounded-2xl shadow-xl max-w-4xl mx-auto border border-blue-100 animate-fade-in">
+          <h2 className="text-3xl font-extrabold mb-6 text-blue-700 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-8 w-8 text-blue-500">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+            </svg>
+            Real Deals from Real People
+          </h2>
+          {user && (
+            <>
+              <input
+                type="text"
+                placeholder="Search by keyword..."
+                value={searchCategory}
+                onChange={(e) => setSearchCategory(e.target.value)}
+                className="w-full md:w-64 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
+              />
+              <div className="h-6" />
+            </>
+          )}
+          {user ? (
+            <>
+              <div className="flex flex-col divide-y divide-gray-200">
+                {filteredReferrals.slice(0, visibleCount).map((ref) => (
+                  <div
+                    key={ref.id}
+                    className="flex gap-4 py-4 hover:bg-gray-50 transition"
+                  >
+                    {/* Voting column */}
+                    <div className="flex flex-col items-center w-12 shrink-0">
+                      <button
+                        className={`p-1 text-gray-500 hover:text-green-600 disabled:opacity-50 
+                      ${userVotes[ref.id] === "up" ? "text-green-600 font-bold" : ""}`}
+                        onClick={() => handleVote(ref.id, "up")}
+                        disabled={voteLoading[ref.id]}
+                        aria-label="Upvote"
+                      >
+                        ▲
+                      </button>
+                      <span className="text-sm font-medium">{(votes[ref.id]?.up || 0) - (votes[ref.id]?.down || 0)}</span>
+                      <button
+                        className={`p-1 text-gray-500 hover:text-red-600 disabled:opacity-50 
+                      ${userVotes[ref.id] === "down" ? "text-red-600 font-bold" : ""}`}
+                        onClick={() => handleVote(ref.id, "down")}
+                        disabled={voteLoading[ref.id]}
+                        aria-label="Downvote"
+                      >
+                        ▼
+                      </button>
+                    </div>
+
+                    {/* Post content */}
+                    <div className="flex flex-col flex-1">
+                      {/* Header */}
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <span
+                          className={`text-sm font-bold uppercase ${ref.type === "ask" ? "text-pink-600" : "text-blue-600"
+                            }`}
+                        >
+                          {ref.type === "ask" ? "[Ask]" : "[Share]"}
+                        </span>
+                        <h2 className="text-base font-semibold text-gray-900">{ref.title}</h2>
                         {ref.category && (
-                          <span className="px-2 py-1 bg-blue-200 text-blue-800 rounded text-xs font-semibold">
+                          <span className="px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-700">
                             {ref.category.charAt(0).toUpperCase() + ref.category.slice(1)}
                           </span>
                         )}
                       </div>
-                      {ref.description && (
-                        <TruncatedDescription description={ref.description} />
+                      {/* Body (depends on type) */}
+                      {ref.type === "ask" ? (
+                        <div className="text-sm text-gray-700 space-y-1">
+                          {ref.description && <p>{ref.description}</p>}
+                          {ref.location && (
+                            <span className="text-gray-500 text-xs">📍 {ref.location}</span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-700 space-y-1">
+                          {ref.description && <TruncatedDescription description={ref.description} />}
+                          {ref.expiration_date && (
+                            <span className="text-xs text-gray-500">
+                              ⏳ Expires: {" "}
+                              {new Date(ref.expiration_date.replace(" ", "T")).toLocaleDateString()}
+                            </span>
+                          )}
+                          {ref.url && (
+                            <a
+                              href={ref.url}
+                              className="inline-flex items-center gap-1 text-blue-600 hover:underline text-xs"
+                            >
+                              🔗{" "}
+                              {(() => {
+                                try {
+                                  const u = new URL(ref.url);
+                                  const path =
+                                    u.pathname.length > 12
+                                      ? u.pathname.slice(0, 12) + "..."
+                                      : u.pathname;
+                                  return `${u.hostname}${path}`;
+                                } catch {
+                                  return ref.url.length > 24
+                                    ? ref.url.slice(0, 24) + "..."
+                                    : ref.url;
+                                }
+                              })()}
+                            </a>
+                          )}
+                        </div>
                       )}
-                      <div className="flex flex-wrap gap-2 text-xs text-gray-500 mt-1">
-                        {ref.expiration_date && (
-                          <span className="px-2 py-1 bg-gray-200 rounded">
-                            Expires: {new Date(ref.expiration_date.replace(' ', 'T')).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
-                      {ref.url && (
-                        <a
-                          href={ref.url}
-                          className="text-blue-600 underline break-all font-mono"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {(() => {
-                            try {
-                              const u = new URL(ref.url);
-                              const path = u.pathname.length > 12 ? u.pathname.slice(0, 12) + "..." : u.pathname;
-                              return `${u.hostname}${path}`;
-                            } catch {
-                              return ref.url.length > 24 ? ref.url.slice(0, 24) + "..." : ref.url;
-                            }
-                          })()}
-                        </a>
-                      )}
-                      <div className="flex gap-4 mt-2 items-center">
-                        <button
-                          className={`flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50 ${userVotes[ref.id] === 'up' ? 'ring-2 ring-green-400' : ''}`}
-                          onClick={() => handleVote(ref.id, 'up')}
-                          onDoubleClick={() => handleVote(ref.id, 'up')}
-                          disabled={voteLoading[ref.id]}
-                          aria-label="Useful"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                          {votes[ref.id]?.up || 0}
-                        </button>
-                        <button
-                          className={`flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50 ${userVotes[ref.id] === 'down' ? 'ring-2 ring-red-400' : ''}`}
-                          onClick={() => handleVote(ref.id, 'down')}
-                          onDoubleClick={() => handleVote(ref.id, 'down')}
-                          disabled={voteLoading[ref.id]}
-                          aria-label="Useless"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                          {votes[ref.id]?.down || 0}
-                        </button>
-                      </div>
+
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
+                {/* Show more */}
                 {referrals.length > visibleCount && (
-                  <div className="flex justify-center mt-6">
+                  <div className="flex justify-center py-4">
                     <button
-                      className="px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition"
+                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition"
                       onClick={() => setVisibleCount((c) => c + 12)}
                     >
                       Show more
                     </button>
                   </div>
                 )}
-              </>
-            ) : (
-              <p className="text-gray-700 text-lg">Sign in to view what others are sharing.</p>
-            )}
-          </section>
-        </main>
-        <footer className="text-center text-sm text-gray-500 p-6 mt-8">
-          © 2025 ShareHub. All rights reserved.
-        </footer>
-      </div>
-    );
-  }
+              </div>
+            </>
+          ) : (
+            <p className="text-gray-700 text-lg">Sign in to view what others are sharing.</p>
+          )}
+        </section>
+      </main>
+      <footer className="text-center text-sm text-gray-500 p-6 mt-8">
+        © 2025 ShareHub. All rights reserved.
+      </footer>
+    </div>
+  );
+}
 
-  export default function Home() {
-    return (
-      <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
-        <HomeContent />
-      </Suspense>
-    );
-  }
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+      <HomeContent />
+    </Suspense>
+  );
+}

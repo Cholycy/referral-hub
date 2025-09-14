@@ -32,7 +32,7 @@ export default function ProfilePage() {
         return;
       }
       setUser(user);
-      const { data, error } = await supabase.from("referrals").select("*").eq("user_id", user.id).order("expiration_date", { ascending: false });
+      const { data, error } = await supabase.from("posts_full").select("*").eq("user_id", user.id).order("expiration_date", { ascending: false });
       if (error) setErrorMsg(error.message);
       else setReferrals(data || []);
       setLoading(false);
@@ -41,9 +41,9 @@ export default function ProfilePage() {
   }, [router]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this referral?")) return;
+    if (!confirm("Are you sure you want to delete this sharing?")) return;
     setLoading(true);
-    const { error } = await supabase.from("referrals").delete().eq("id", id);
+    const { error } = await supabase.from("posts").delete().eq("id", id);
     if (error) setErrorMsg(error.message);
     else setReferrals(referrals.filter((r) => r.id !== id));
     setLoading(false);
@@ -69,18 +69,36 @@ export default function ProfilePage() {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
+    const errors = [];
     let formattedExpiration = editForm.expiration;
     if (formattedExpiration.length === 16) {
       formattedExpiration = formattedExpiration.replace('T', ' ') + ':00+00';
     }
-    const { error } = await supabase.from("referrals").update({
-      title: editForm.title,
-      description: editForm.description,
-      category: editForm.category,
-      expiration_date: formattedExpiration,
-      url: editForm.url,
-    }).eq("id", editId!);
-    if (error) setErrorMsg(error.message);
+
+    if (editForm.title || editForm.category || editForm.description) {
+      const { error } = await supabase.from("posts").update(
+        {
+          title: editForm.title,
+          description: editForm.description,
+          category: editForm.category,
+        }
+      ).eq('id', editId);
+      if (error) errors.push("Error updating posts table: " + error.message);
+    }
+
+    if (editForm.url || editForm.expiration) {
+      const { error } = await supabase.from("sharing_details").update(
+        {
+          url: editForm.url,
+          expiration_date: formattedExpiration,
+        }
+      ).eq('id', editId);
+      if (error) errors.push("Error updating sharing_details table: " + error.message);
+    }
+
+    if (errors.length) {
+      setErrorMsg(errors.join(" | "));
+    }
     else {
       setSuccessMsg("Referral updated!");
       setReferrals(referrals.map((r) => r.id === editId ? { ...r, ...editForm, expiration_date: formattedExpiration } : r));
@@ -113,8 +131,8 @@ export default function ProfilePage() {
                     <option value="membership">Membership</option>
                     <option value="others">Others</option>
                   </select>
-                  <input type="datetime-local" name="expiration" value={editForm.expiration} onChange={handleEditChange} required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500" />
-                  <input type="text" name="url" value={editForm.url} onChange={handleEditChange} required className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500" placeholder="Benefit Link" />
+                  <input type="datetime-local" name="expiration" value={editForm.expiration} onChange={handleEditChange} className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500" />
+                  <input type="text" name="url" value={editForm.url} onChange={handleEditChange} className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500" placeholder="Benefit Link" />
                   <div className="flex gap-2 mt-2">
                     <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">Save</button>
                     <button type="button" className="bg-gray-300 px-4 py-2 rounded shadow hover:bg-gray-400" onClick={() => setEditId(null)}>Cancel</button>

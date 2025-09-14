@@ -3,20 +3,39 @@ Copyright (c) 2025 cholycy@gmail.com
 All rights reserved.
 */
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
+import type { User } from "@supabase/supabase-js";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error("Missing Supabase environment variables");
+}
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function RequestSharePage() {
   const [request, setRequest] = useState({
     title: "",
     details: "",
-    contact: "",
+    category: "",
+    location: "",
   });
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (!error) setUser(user);
+    };
+    fetchUser();
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setRequest({ ...request, [e.target.name]: e.target.value });
   };
 
@@ -24,15 +43,35 @@ export default function RequestSharePage() {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
-    // TODO: Replace with your backend logic to save the request
     try {
-      // Example: Save to Supabase "share_requests" table
-      // const { error } = await supabase.from("share_requests").insert([request]);
-      // if (error) throw error;
+      // Step 1: Insert into posts table
+      const { data: post, error: postError } = await supabase
+        .from("posts")
+        .insert([{ title: request.title, 
+          type: "ask",
+          description: request.details,
+          category: request.category, // Provide a value or add to state if needed
+          user_id: user?.id, // Ensure user is not null
+        }])
+        .select("id")
+        .single();
+
+      if (postError) throw postError;
+
+      // Step 2: Insert into ask_details table
+      const { error: detailsError } = await supabase
+        .from("ask_details")
+        .insert([{
+          post_id: post.id,
+          location: request.location,
+        }]);
+
+      if (detailsError) throw detailsError;
+
       setSuccessMsg("Your request has been submitted!");
       setTimeout(() => router.push("/"), 1500);
     } catch (err: any) {
-      setErrorMsg("Failed to submit request.");
+      setErrorMsg("Failed to submit request with error: " + err.message);
     }
   };
 
@@ -73,14 +112,36 @@ export default function RequestSharePage() {
             />
           </div>
           <div>
-            <label htmlFor="contact" className="block text-blue-800 font-semibold mb-1">Contact (optional)</label>
+            <label htmlFor="category" className="block text-blue-800 font-semibold mb-1">Category</label>
+            <select
+              id="category"
+              name="category"
+              className="w-full rounded-xl border border-blue-200 px-4 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm"
+              value={request.category}
+              onChange={handleChange}
+              required
+            >
+              <option value="credit card">Credit Card</option>
+              <option value="bank / investment">Bank / Investment</option>
+              <option value="mobile / internet">Mobile / Internet</option>
+              <option value="shopping / cashback">Shopping / Cashback</option>
+              <option value="subscriptions">Subscriptions</option>
+              <option value="travel & transport">Travel & Transport</option>
+              <option value="health & fitness">Health & Fitness</option>
+              <option value="education">Education</option>
+              <option value="apps & tools">Apps & Tools</option>
+              <option value="others">Others</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="location" className="block text-blue-800 font-semibold mb-1">Location (optional)</label>
             <input
-              id="contact"
-              name="contact"
+              id="location"
+              name="location"
               type="text"
               className="w-full rounded-xl border border-blue-200 px-4 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm text-blue-900 placeholder:text-blue-500"
-              placeholder="Email or social handle"
-              value={request.contact}
+              placeholder="e.g. New York, Online"
+              value={request.location}
               onChange={handleChange}
               maxLength={100}
             />

@@ -83,7 +83,7 @@ export default function AboutCarousel() {
     return (
         <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex select-none gap-4 px-4">
-                {categories.map((cat, index) => (
+                {categories.map((cat) => (
                     <div key={cat.name}
                         className="flex bg-white/30 backdrop-blur-md rounded-2xl shadow-lg p-6 border border-blue-200 cursor-pointer hover:bg-white/50 transition max-w-full"
                         onClick={() => handleCategoryClick('education')
@@ -91,9 +91,9 @@ export default function AboutCarousel() {
                         tabIndex={0}
                         role="button"
                     >
-                        {/* Icon: fixed width, centered */}
-                        <div className="flex-shrink-0 w-20 flex justify-center items-center">
-                            <span className="text-6xl">{cat.icon}</span>
+                        {/* Icon: dynamic size, max 1/10 width, centered */}
+                        <div className="flex-shrink-0 flex justify-center items-center max-w-[10%]">
+                            <span className="text-[clamp(1.5rem,5vw,3rem)]">{cat.icon}</span>
                         </div>
 
                         {/* Text container: flex-grow, consistent horizontal padding, allow shrinking */}
@@ -102,9 +102,6 @@ export default function AboutCarousel() {
                             <span className="text-gray-600 text-sm break-words whitespace-normal">{cat.description}</span>
                         </div>
                     </div>
-
-
-
                 )
                 )}
             </div>

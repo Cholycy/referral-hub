@@ -51,7 +51,7 @@ export default function SubmitReferral() {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
-    if (!form.title || !form.description || !form.category || !form.expiration || !form.link) {
+    if (!form.title || !form.description || !form.category) {
       setErrorMsg("All fields are required.");
       return;
     }
@@ -62,24 +62,49 @@ export default function SubmitReferral() {
     setLoading(true);
     // Format expiration as 'YYYY-MM-DD 00:00:00+00'
     let formattedExpiration = form.expiration;
-    if (formattedExpiration.length === 10) {
+    if (formattedExpiration && formattedExpiration.length === 10) {
       formattedExpiration = formattedExpiration + ' 00:00:00+00';
     }
-    const { error } = await supabase.from("referrals").insert([
-      {
-        title: form.title,
-        description: form.description,
-        category: form.category,
-        expiration_date: formattedExpiration,
-        url: form.link, // use 'url' instead of 'link'
-        user_id: user.id,
-      },
-    ]);
+
+    // 1️⃣ Insert into posts table
+    type PostRow = { id: number };
+    const { data: postData, error: postError } = await supabase
+      .from("posts")
+      .insert([
+        {
+          title: form.title,
+          type: "sharing",
+          description: form.description,
+          category: form.category,
+          user_id: user.id,
+        },
+      ])
+      .select("id"); // Ensure 'id' is returned
+
+    if (postError || !postData || postData.length === 0) {
+      console.error("Error inserting into posts:", postError);
+      return;
+    }
+
+    const postId = postData[0].id;
+
+    // 2️⃣ Insert into sharing_details table
+    const sharingDetails: any = {
+      id: postId,
+      url: form.link,
+    };
+    if (formattedExpiration) {
+      sharingDetails.expiration_date = formattedExpiration;
+    }
+    const { error } = await supabase
+      .from("sharing_details")
+      .insert([sharingDetails]);
+
     setLoading(false);
     if (error) {
-      setErrorMsg("Failed to submit referral: " + error.message);
+      setErrorMsg("Failed to submit sharing: " + error.message);
     } else {
-      setSuccessMsg("Referral submitted successfully!");
+      setSuccessMsg("Sharing submitted successfully!");
       setForm({
         title: "",
         description: "",
@@ -87,7 +112,8 @@ export default function SubmitReferral() {
         expiration: "",
         link: "",
       });
-      setTimeout(() => router.push("/"), 1200);
+      
+      setTimeout(() => router.push("/"), 3000);
     }
   };
 
@@ -150,7 +176,7 @@ export default function SubmitReferral() {
             </select>
           </div>
           <div>
-            <label htmlFor="link" className="block text-blue-800 font-semibold mb-1">Benefit Link</label>
+            <label htmlFor="link" className="block text-blue-800 font-semibold mb-1">Benefit Link (optional)</label>
             <input
               id="link"
               name="link"
@@ -158,11 +184,10 @@ export default function SubmitReferral() {
               className="w-full rounded-xl border border-blue-200 px-4 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm text-blue-900 placeholder:text-blue-500"
               value={form.link}
               onChange={handleChange}
-              required
             />
           </div>
           <div>
-            <label htmlFor="expiration" className="block text-blue-800 font-semibold mb-1">Expiration Date</label>
+            <label htmlFor="expiration" className="block text-blue-800 font-semibold mb-1">Expiration Date (optional)</label>
             <input
               id="expiration"
               name="expiration"
@@ -170,7 +195,6 @@ export default function SubmitReferral() {
               className="w-full rounded-xl border border-blue-200 px-4 py-2 bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm text-blue-900 placeholder:text-blue-500"
               value={form.expiration}
               onChange={handleChange}
-              required
             />
           </div>
           <button
@@ -179,7 +203,7 @@ export default function SubmitReferral() {
             disabled={loading}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-            {loading ? "Submitting..." : "Submit Referral"}
+            {loading ? "Submitting..." : "Submit Sharing"}
           </button>
         </form>
       </section>
