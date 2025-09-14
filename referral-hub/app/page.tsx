@@ -79,7 +79,6 @@ function HomeContent() {
         .from("posts_full")
         .select("*")
         .order("created_at", { ascending: false }); // order by latest submit (assuming id is serial)
-      console.log(data); // for debugging
       if (data) setReferrals(data);
     };
     if (user) fetchReferrals();
