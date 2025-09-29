@@ -8,10 +8,9 @@ All rights reserved.
 // The application uses Supabase for authentication and database management.
 // The code is structured to handle user authentication, share fetching, and UI rendering.
 // The main page includes a header with navigation links, a login form, and a section to display sharings.
-// The application is styled using Tailwind CSS for a clean and modern look.
 
 'use client';
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import type { User } from "@supabase/supabase-js";
@@ -60,6 +59,9 @@ function HomeContent() {
   const [votes, setVotes] = useState<Record<string, { up: number; down: number }>>({});
   const [voteLoading, setVoteLoading] = useState<Record<string, boolean>>({});
   const [userVotes, setUserVotes] = useState<Record<string, "up" | "down" | null>>({});
+  const [comments, setComments] = useState<Record<string, Array<{id: number, user_id: string, content: string, created_at: string}>>>({});
+  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
+  const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [showResetForm, setShowResetForm] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetMsg, setResetMsg] = useState("");
@@ -72,6 +74,80 @@ function HomeContent() {
     };
     getUser();
   }, []);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      if (!user || !referrals.length) return;
+      const { data, error } = await supabase
+        .from("comments")
+        .select("id, post_id, user_id, content, created_at")
+        .in("post_id", referrals.map(r => r.id))
+        .order('created_at', { ascending: true });
+      if (!error && data) {
+        const grouped: Record<string, Array<any>> = {};
+        data.forEach((c: any) => {
+          if (!grouped[c.post_id]) grouped[c.post_id] = [];
+          grouped[c.post_id].push(c);
+        });
+        setComments(grouped);
+      }
+    };
+    fetchComments();
+  }, [user, referrals]);
+
+  const toggleComments = (postId: string) => {
+    setExpandedComments(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+  };
+
+  const handleCommentInput = (postId: string, value: string) => {
+    setCommentInputs((prev) => ({ ...prev, [postId]: value }));
+  };
+
+  const handleCommentSubmit = async (postId: string) => {
+    if (!user) return;
+    const content = commentInputs[postId]?.trim();
+    if (!content) return;
+
+    // First, get the post details to know the owner
+    const { data: postData, error: postError } = await supabase
+      .from("posts_full")
+      .select("user_id, title")
+      .eq("id", postId)
+      .single();
+
+    if (postError) {
+      console.error('Error fetching post details:', postError);
+      return;
+    }
+
+    const { error } = await supabase
+      .from("comments")
+      .insert([{ 
+        post_id: postId, 
+        user_id: user.id, 
+        content 
+      }]);
+
+    if (!error) {
+      setCommentInputs((prev) => ({ ...prev, [postId]: "" }));
+      // Refetch comments for this post
+      const { data } = await supabase
+        .from("comments")
+        .select("id, user_id, content, created_at")
+        .eq("post_id", postId)
+        .order("created_at", { ascending: true });
+      setComments((prev) => ({ ...prev, [postId]: data || [] }));
+
+      // Send email notification to post owner
+      // Only send if the commenter is not the post owner
+      if (postData.user_id !== user.id) {
+        await sendCommentNotification(postData.user_id, postData.title, content);
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchReferrals = async () => {
@@ -201,6 +277,37 @@ function HomeContent() {
       setResetMsg("Error: " + error.message);
     } else {
       setResetMsg("Password reset link sent to your email.");
+    }
+  };
+
+  const sendCommentNotification = async (postOwnerId: string, postTitle: string, commentContent: string) => {
+    try {
+      // Get the post owner's email
+      const { data: userData, error: userError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('id', postOwnerId)
+        .single();
+
+      if (userError || !userData?.email) {
+        console.error('Error fetching user email:', userError);
+        return;
+      }
+
+      // Send the email notification
+      const { error: emailError } = await supabase.functions.invoke('send-email-notification', {
+        body: {
+          to: userData.email,
+          subject: 'New Comment on Your Post',
+          content: `Someone left a comment on your post "${postTitle}":\n\n${commentContent}`
+        }
+      });
+
+      if (emailError) {
+        console.error('Error sending email notification:', emailError);
+      }
+    } catch (error) {
+      console.error('Error in sendCommentNotification:', error);
     }
   };
 
@@ -499,6 +606,72 @@ function HomeContent() {
                           )}
                         </div>
                       )}
+
+                      {/* Comments Section */}
+                      <div className="mt-4 bg-gray-50 rounded-lg p-3">
+                        <div className="mb-2 flex justify-between items-center">
+                          <span className="font-semibold text-xs text-gray-600">
+                            Comments {comments[ref.id]?.length > 0 && `(${comments[ref.id].length})`}
+                          </span>
+                          <button
+                            onClick={() => toggleComments(ref.id)}
+                            className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                          >
+                            {expandedComments[ref.id] ? (
+                              <>
+                                <span>Hide</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+                                </svg>
+                              </>
+                            ) : (
+                              <>
+                                <span>Show</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                        
+                        {expandedComments[ref.id] && (
+                          <>
+                            <div className="space-y-2 max-h-40 overflow-y-auto mb-2">
+                              {comments[ref.id]?.map((comment) => (
+                                <div key={comment.id} className="text-xs text-gray-800 border-b border-gray-100 pb-2">
+                                  <div className="flex justify-between items-start">
+                                    <span className="font-bold text-blue-700">{comment.user_id.slice(0, 6)}</span>
+                                    <span className="text-gray-400 text-[10px]">{new Date(comment.created_at).toLocaleString()}</span>
+                                  </div>
+                                  <p className="mt-1">{comment.content}</p>
+                                </div>
+                              ))}
+                              {(!comments[ref.id] || comments[ref.id].length === 0) && (
+                                <div className="text-xs text-gray-400">No comments yet</div>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <textarea
+                                className="flex-1 rounded border border-gray-200 px-2 py-1 text-xs focus:ring-2 focus:ring-blue-200 resize-none"
+                                rows={1}
+                                placeholder="Add a comment..."
+                                value={commentInputs[ref.id] || ""}
+                                onChange={(e) => handleCommentInput(ref.id, e.target.value)}
+                                maxLength={200}
+                              />
+                              <button
+                                className="bg-blue-500 text-white px-3 py-1 rounded text-xs font-bold hover:bg-blue-600 disabled:opacity-50"
+                                disabled={!commentInputs[ref.id]?.trim()}
+                                onClick={() => handleCommentSubmit(ref.id)}
+                                type="button"
+                              >
+                                Post
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -523,7 +696,7 @@ function HomeContent() {
           )}
         </section>
       </main>
-      <footer className="text-center text-sm text-gray-500 p-6 mt-8">
+      <footer className="text-center text-xs sm:text-sm text-gray-500 p-4 sm:p-6 mt-4 sm:mt-8">
         © 2025 ShareHub. All rights reserved.
       </footer>
     </div>
