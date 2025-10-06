@@ -19,10 +19,31 @@ export default function SignUpPage() {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+  const blockedDomains = [
+    "passinbox.com",
+    "mailinator.com",
+    "tempmail.com",
+    "guerrillamail.com",
+    "10minutemail.com",
+    "yopmail.com",
+    // Add more disposable/forwarding domains as needed
+  ];
+
+  function isBlockedEmail(email: string) {
+    const domain = email.split('@')[1]?.toLowerCase();
+    return blockedDomains.some((d) => domain === d);
+  }
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setReminder("");
+
+    if (isBlockedEmail(email)) {
+      setReminder("Signups from disposable or forwarding email domains are not allowed. Please use your real email address.");
+      setLoading(false);
+      return;
+    }
 
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) {
