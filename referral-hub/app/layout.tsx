@@ -42,10 +42,7 @@ export default function RootLayout({
             </Link>
             {/* Desktop nav links */}
             <div className="hidden md:flex gap-2 md:gap-4 items-center">
-              <Link href="/about" className="rounded-lg px-3 py-1 text-white/90 text-lg md:text-xl font-bold hover:bg-white/20 hover:text-yellow-200 transition font-medium">About</Link>
               <Link href="/" className="rounded-lg px-3 py-1 text-white/90 text-lg md:text-xl font-bold hover:bg-white/20 hover:text-yellow-200 transition font-medium">Dashboard</Link>
-              <Link href="/share" className="rounded-lg px-3 py-1 text-white/90 text-lg md:text-xl font-bold hover:bg-white/20 hover:text-yellow-200 transition font-medium">Share</Link>
-              <Link href="/ask" className="rounded-lg px-3 py-1 text-white/90 text-lg md:text-xl font-bold hover:bg-white/20 hover:text-yellow-200 transition font-medium">Ask</Link>
               <Link href="/profile" className="rounded-lg px-3 py-1 text-white/90 text-lg md:text-xl font-bold hover:bg-white/20 hover:text-yellow-200 transition font-medium">Profile</Link>
               <button
                 onClick={() => {
@@ -74,10 +71,7 @@ export default function RootLayout({
             {/* Mobile dropdown */}
             {mobileMenuOpen && (
               <div className="absolute top-16 right-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 border border-blue-200 animate-fade-in md:hidden">
-                <Link href="/about" className="block px-4 py-2 text-blue-700 font-semibold hover:bg-blue-50" onClick={() => setMobileMenuOpen(false)}>About</Link>
                 <Link href="/" className="block px-4 py-2 text-blue-700 font-semibold hover:bg-blue-50" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
-                <Link href="/share" className="block px-4 py-2 text-blue-700 font-semibold hover:bg-blue-50" onClick={() => setMobileMenuOpen(false)}>Share</Link>
-                <Link href="/ask" className="block px-4 py-2 text-blue-700 font-semibold hover:bg-blue-50" onClick={() => setMobileMenuOpen(false)}>Ask</Link>
                 <Link href="/profile" className="block px-4 py-2 text-blue-700 font-semibold hover:bg-blue-50" onClick={() => setMobileMenuOpen(false)}>Profile</Link>
                 <button
                   className="block w-full text-left px-4 py-2 text-blue-700 font-semibold hover:bg-blue-50"

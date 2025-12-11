@@ -10,7 +10,7 @@ All rights reserved.
 // The main page includes a header with navigation links, a login form, and a section to display sharings.
 
 'use client';
-import React, { useEffect, useState, Suspense, useRef } from "react";
+import React, { useEffect, useState, Suspense, useRef, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import type { User } from "@supabase/supabase-js";
@@ -21,6 +21,26 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error("Missing Supabase environment variables");
 }
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Category mapping with icons
+const CATEGORIES = {
+  'credit card': { icon: '💳', label: 'Credit Card' },
+  'bank / investment': { icon: '🏦', label: 'Bank / Investment' },
+  'mobile / internet': { icon: '📶', label: 'Mobile / Internet' },
+  'shopping / cashback': { icon: '🛒', label: 'Shopping / Cashback' },
+  'subscriptions': { icon: '📦', label: 'Subscriptions' },
+  'travel & transport': { icon: '✈️', label: 'Travel & Transport' },
+  'health & fitness': { icon: '🧘', label: 'Health & Fitness' },
+  'education': { icon: '🎓', label: 'Education' },
+  'apps & tools': { icon: '🧰', label: 'Apps & Tools' },
+  'others': { icon: '🌀', label: 'Others' },
+};
+
+const CATEGORY_LIST = Object.entries(CATEGORIES).map(([key, value]) => ({
+  key,
+  icon: value.icon,
+  label: value.label,
+}));
 
 function TruncatedDescription({ description }: { description: string }) {
   const [expanded, setExpanded] = useState(false);
@@ -66,6 +86,185 @@ function HomeContent() {
   const [resetEmail, setResetEmail] = useState("");
   const [resetMsg, setResetMsg] = useState("");
   const [signUpMsg, setSignUpMsg] = useState("");
+  
+  // Share modal state
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareForm, setShareForm] = useState({
+    title: "",
+    description: "",
+    category: "credit card",
+    expiration: "",
+    link: "",
+  });
+  const [shareLoading, setShareLoading] = useState(false);
+  const [shareErrorMsg, setShareErrorMsg] = useState("");
+  const [shareSuccessMsg, setShareSuccessMsg] = useState("");
+
+  // Ask modal state
+  const [showAskModal, setShowAskModal] = useState(false);
+  const [askForm, setAskForm] = useState({
+    title: "",
+    details: "",
+    category: "",
+    location: "",
+  });
+  const [askLoading, setAskLoading] = useState(false);
+  const [askErrorMsg, setAskErrorMsg] = useState("");
+  const [askSuccessMsg, setAskSuccessMsg] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [loadedComments, setLoadedComments] = useState<Record<string, boolean>>({});
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchCategory(e.target.value);
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearchQuery(e.target.value);
+    }, 300);
+  }, []);
+
+  // Share form handlers
+  const handleShareChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setShareForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleShareSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setShareErrorMsg("");
+    setShareSuccessMsg("");
+    if (!shareForm.title || !shareForm.description || !shareForm.category) {
+      setShareErrorMsg("All fields are required.");
+      return;
+    }
+    if (!user) {
+      setShareErrorMsg("User not authenticated.");
+      return;
+    }
+    setShareLoading(true);
+    let formattedExpiration = shareForm.expiration;
+    if (formattedExpiration && formattedExpiration.length === 10) {
+      formattedExpiration = formattedExpiration + ' 00:00:00+00';
+    }
+
+    type PostRow = { id: number };
+    const { data: postData, error: postError } = await supabase
+      .from("posts")
+      .insert([
+        {
+          title: shareForm.title,
+          type: "sharing",
+          description: shareForm.description,
+          category: shareForm.category,
+          user_id: user.id,
+        },
+      ])
+      .select("id");
+
+    if (postError || !postData || postData.length === 0) {
+      setShareErrorMsg("Error inserting sharing: " + postError?.message);
+      setShareLoading(false);
+      return;
+    }
+
+    const postId = postData[0].id;
+
+    const sharingDetails: any = {
+      id: postId,
+      url: shareForm.link,
+    };
+    if (formattedExpiration) {
+      sharingDetails.expiration_date = formattedExpiration;
+    }
+    const { error } = await supabase
+      .from("sharing_details")
+      .insert([sharingDetails]);
+
+    setShareLoading(false);
+    if (error) {
+      setShareErrorMsg("Failed to submit sharing: " + error.message);
+    } else {
+      setShareSuccessMsg("Sharing submitted successfully!");
+      setShareForm({
+        title: "",
+        description: "",
+        category: "credit card",
+        expiration: "",
+        link: "",
+      });
+      setTimeout(() => {
+        setShowShareModal(false);
+        // Refresh referrals
+        fetchReferrals();
+      }, 1500);
+    }
+  };
+
+  // Ask form handlers
+  const handleAskChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setAskForm({ ...askForm, [e.target.name]: e.target.value });
+  };
+
+  const handleAskSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAskErrorMsg("");
+    setAskSuccessMsg("");
+    if (!user) {
+      setAskErrorMsg("User not authenticated.");
+      return;
+    }
+    setAskLoading(true);
+    try {
+      const { data: post, error: postError } = await supabase
+        .from("posts")
+        .insert([{
+          title: askForm.title,
+          type: "ask",
+          description: askForm.details,
+          category: askForm.category,
+          user_id: user.id,
+        }])
+        .select("id")
+        .single();
+
+      if (postError) throw postError;
+
+      const { error: detailsError } = await supabase
+        .from("ask_details")
+        .insert([{
+          post_id: post.id,
+          location: askForm.location,
+        }]);
+
+      if (detailsError) throw detailsError;
+
+      setAskSuccessMsg("Your request has been submitted!");
+      setAskForm({
+        title: "",
+        details: "",
+        category: "",
+        location: "",
+      });
+      setTimeout(() => {
+        setShowAskModal(false);
+        fetchReferrals();
+      }, 1500);
+    } catch (err: any) {
+      setAskErrorMsg("Failed to submit request: " + err.message);
+    } finally {
+      setAskLoading(false);
+    }
+  };
+
+  // Fetch referrals function
+  const fetchReferrals = async () => {
+    const { data, error } = await supabase
+      .from("posts_full")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (data) setReferrals(data);
+  };
 
   useEffect(() => {
     const getUser = async () => {
@@ -78,10 +277,14 @@ function HomeContent() {
   useEffect(() => {
     const fetchComments = async () => {
       if (!user || !referrals.length) return;
+      // Only fetch comments for posts that have been explicitly expanded
+      const postsToLoad = Object.keys(loadedComments).filter(id => loadedComments[id]);
+      if (postsToLoad.length === 0) return;
+      
       const { data, error } = await supabase
         .from("comments")
         .select("id, post_id, user_id, content, created_at")
-        .in("post_id", referrals.map(r => r.id))
+        .in("post_id", postsToLoad)
         .order('created_at', { ascending: true });
       if (!error && data) {
         const grouped: Record<string, Array<any>> = {};
@@ -89,17 +292,22 @@ function HomeContent() {
           if (!grouped[c.post_id]) grouped[c.post_id] = [];
           grouped[c.post_id].push(c);
         });
-        setComments(grouped);
+        setComments(prev => ({ ...prev, ...grouped }));
       }
     };
     fetchComments();
-  }, [user, referrals]);
+  }, [user, referrals, loadedComments]);
 
-  const toggleComments = (postId: string) => {
+  const toggleComments = async (postId: string) => {
     setExpandedComments(prev => ({
       ...prev,
       [postId]: !prev[postId]
     }));
+    
+    // Lazy load comments when expanding
+    if (!loadedComments[postId] && !comments[postId]) {
+      setLoadedComments(prev => ({ ...prev, [postId]: true }));
+    }
   };
 
   const handleCommentInput = (postId: string, value: string) => {
@@ -150,13 +358,6 @@ function HomeContent() {
   };
 
   useEffect(() => {
-    const fetchReferrals = async () => {
-      const { data, error } = await supabase
-        .from("posts_full")
-        .select("*")
-        .order("created_at", { ascending: false }); // order by latest submit (assuming id is serial)
-      if (data) setReferrals(data);
-    };
     if (user) fetchReferrals();
   }, [user]);
 
@@ -366,17 +567,31 @@ function HomeContent() {
     return () => window.removeEventListener('login-logout-click', handler);
   }, [user]);
 
-  const filteredReferrals = searchCategory
-    ? referrals.filter((ref) => {
-      const q = searchCategory.toLowerCase();
-      return (
-        (ref.title && ref.title.toLowerCase().includes(q)) ||
-        (ref.description && ref.description.toLowerCase().includes(q)) ||
-        (ref.category && ref.category.toLowerCase().includes(q)) ||
-        (ref.url && ref.url.toLowerCase().includes(q))
+  const filteredReferrals = useMemo(() => {
+    let filtered = referrals;
+    
+    // Filter by selected category
+    if (selectedCategory) {
+      filtered = filtered.filter((ref) => 
+        ref.category && ref.category.toLowerCase() === selectedCategory.toLowerCase()
       );
-    })
-    : referrals;
+    }
+    
+    // Filter by search query
+    if (debouncedSearchQuery) {
+      filtered = filtered.filter((ref) => {
+        const q = debouncedSearchQuery.toLowerCase();
+        return (
+          (ref.title && ref.title.toLowerCase().includes(q)) ||
+          (ref.description && ref.description.toLowerCase().includes(q)) ||
+          (ref.category && ref.category.toLowerCase().includes(q)) ||
+          (ref.url && ref.url.toLowerCase().includes(q))
+        );
+      });
+    }
+    
+    return filtered;
+  }, [referrals, debouncedSearchQuery, selectedCategory]);
 
 
 
@@ -476,6 +691,67 @@ function HomeContent() {
       )}
 
       <main className="p-4 sm:p-8">
+        {/* About Section */}
+        <section className="relative overflow-hidden mb-16">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-700 via-blue-500 to-blue-400 opacity-90" />
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1557683316-973673baf926?w=1920')] bg-cover bg-center mix-blend-overlay opacity-20" />
+          
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+            <div className="text-center mb-12">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight flex items-center justify-center gap-4">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    className="h-12 w-12 text-white/90 animate-bounce"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z"
+                    />
+                  </svg>
+                  ShareHub
+                </h1>
+                <p className="text-lg sm:text-2xl md:text-3xl font-medium max-w-2xl mx-auto mb-4 text-white/90">
+                  Explore, share, and support your favorite finds in the world's go-to sharing community!
+                </p>
+                <p className="text-blue-100/90 text-base sm:text-lg md:text-xl font-light max-w-xl mx-auto mb-8">
+                  Real people. Real picks. All in one place.
+                </p>
+                
+                {/* Action Buttons */}
+                {user && (
+                  <div className="flex flex-wrap gap-4 justify-center">
+                    <button
+                      onClick={() => setShowShareModal(true)}
+                      className="bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-blue-50 transition shadow-lg hover:shadow-xl transform hover:scale-105"
+                    >
+                      Share a Deal
+                    </button>
+                    <button
+                      onClick={() => setShowAskModal(true)}
+                      className="bg-amber-400 text-white px-8 py-3 rounded-lg font-bold hover:bg-amber-500 transition shadow-lg hover:shadow-xl transform hover:scale-105"
+                    >
+                      Ask for a Deal
+                    </button>
+                  </div>
+                )}
+              </div>
+
+            </div>
+
+            {/* Wave decoration */}
+            <div className="absolute bottom-0 left-0 right-0">
+              <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="rgb(248 250 252)" />
+              </svg>
+            </div>
+          </section>
+
+        {/* Dashboard Section */}
         <section className="bg-white p-4 sm:p-8 rounded-2xl shadow-xl max-w-4xl mx-auto border border-blue-100 animate-fade-in">
           <h2 className="text-xl sm:text-3xl font-extrabold mb-4 sm:mb-6 text-blue-700 flex items-center gap-2">
             <svg
@@ -495,16 +771,44 @@ function HomeContent() {
             Real Deals from Real People
           </h2>
 
-          {user && (
-            <>
-              <input
-                type="text"
-                placeholder="Search by keyword..."
-                value={searchCategory}
-                onChange={(e) => setSearchCategory(e.target.value)}
-                className="w-full sm:w-64 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
-              />
-              <div className="h-4 sm:h-6" />
+        {user && (
+          <>
+            <input
+              type="text"
+              placeholder="Search by keyword..."
+              value={searchCategory}
+              onChange={handleSearchChange}
+              className="w-full sm:w-64 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
+            />
+            <div className="h-4 sm:h-6" />
+            
+            {/* Category Filter Buttons */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              <button
+                onClick={() => setSelectedCategory("")}
+                className={`px-3 py-1 rounded-full text-sm transition ${
+                  selectedCategory === "" 
+                    ? "bg-blue-600 text-white" 
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                All Categories
+              </button>
+              {CATEGORY_LIST.map((cat) => (
+                <button
+                  key={cat.key}
+                  onClick={() => setSelectedCategory(cat.key)}
+                  className={`px-3 py-1 rounded-full text-sm transition flex items-center gap-1 ${
+                    selectedCategory === cat.key
+                      ? "bg-blue-600 text-white" 
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
+                >
+                  <span>{cat.icon}</span>
+                  <span className="hidden sm:inline">{cat.label}</span>
+                </button>
+              ))}
+            </div>
             </>
           )}
 
@@ -555,7 +859,8 @@ function HomeContent() {
                           {ref.title}
                         </h2>
                         {ref.category && (
-                          <span className="px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-700">
+                          <span className="px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-700 flex items-center gap-1">
+                            <span>{(CATEGORIES as Record<string, { icon: string; label: string }>)[ref.category.toLowerCase()]?.icon || "🌀"}</span>
                             {ref.category.charAt(0).toUpperCase() + ref.category.slice(1)}
                           </span>
                         )}
@@ -696,6 +1001,207 @@ function HomeContent() {
           )}
         </section>
       </main>
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-8 border border-blue-100 animate-fade-in overflow-y-auto max-h-screen">
+            <h2 className="text-2xl font-extrabold text-blue-700 mb-6 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              Share a Deal You Love
+            </h2>
+            <form onSubmit={handleShareSubmit} className="flex flex-col gap-4">
+              <div>
+                <label htmlFor="share-title" className="block text-blue-800 font-semibold mb-1">Title</label>
+                <input
+                  id="share-title"
+                  name="title"
+                  type="text"
+                  className="w-full rounded-lg border border-blue-200 px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm text-blue-900 placeholder:text-blue-500"
+                  placeholder="e.g. Chase Sapphire Preferred"
+                  value={shareForm.title}
+                  onChange={handleShareChange}
+                  required
+                  maxLength={50}
+                />
+              </div>
+              <div>
+                <label htmlFor="share-description" className="block text-blue-800 font-semibold mb-1">Why do you recommend this?</label>
+                <textarea
+                  id="share-description"
+                  name="description"
+                  rows={3}
+                  className="w-full rounded-lg border border-blue-200 px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm resize-none text-blue-900 placeholder:text-blue-500"
+                  placeholder="I use this because..."
+                  value={shareForm.description}
+                  onChange={handleShareChange}
+                  required
+                  maxLength={500}
+                />
+              </div>
+              <div>
+                <label htmlFor="share-category" className="block text-blue-800 font-semibold mb-1">Category</label>
+                <select
+                  id="share-category"
+                  name="category"
+                  className="w-full rounded-lg border border-blue-200 px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm"
+                  value={shareForm.category}
+                  onChange={handleShareChange}
+                  required
+                >
+                  <option value="credit card">Credit Card</option>
+                  <option value="bank / investment">Bank / Investment</option>
+                  <option value="mobile / internet">Mobile / Internet</option>
+                  <option value="shopping / cashback">Shopping / Cashback</option>
+                  <option value="subscriptions">Subscriptions</option>
+                  <option value="travel & transport">Travel & Transport</option>
+                  <option value="health & fitness">Health & Fitness</option>
+                  <option value="education">Education</option>
+                  <option value="apps & tools">Apps & Tools</option>
+                  <option value="others">Others</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="share-link" className="block text-blue-800 font-semibold mb-1">Benefit Link (optional)</label>
+                <input
+                  id="share-link"
+                  name="link"
+                  type="url"
+                  className="w-full rounded-lg border border-blue-200 px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm text-blue-900 placeholder:text-blue-500"
+                  value={shareForm.link}
+                  onChange={handleShareChange}
+                />
+              </div>
+              <div>
+                <label htmlFor="share-expiration" className="block text-blue-800 font-semibold mb-1">Expiration Date (optional)</label>
+                <input
+                  id="share-expiration"
+                  name="expiration"
+                  type="date"
+                  className="w-full rounded-lg border border-blue-200 px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm text-blue-900 placeholder:text-blue-500"
+                  value={shareForm.expiration}
+                  onChange={handleShareChange}
+                />
+              </div>
+              <div className="flex gap-3 mt-4">
+                <button
+                  type="submit"
+                  disabled={shareLoading}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-700 transition disabled:opacity-50"
+                >
+                  {shareLoading ? "Submitting..." : "Submit Sharing"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowShareModal(false)}
+                  className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold hover:bg-gray-400 transition"
+                >
+                  Cancel
+                </button>
+              </div>
+              {shareErrorMsg && <div className="text-red-600 font-semibold bg-red-50 p-3 rounded">{shareErrorMsg}</div>}
+              {shareSuccessMsg && <div className="text-green-600 font-semibold bg-green-50 p-3 rounded">{shareSuccessMsg}</div>}
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Ask Modal */}
+      {showAskModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-8 border border-blue-100 animate-fade-in overflow-y-auto max-h-screen">
+            <h2 className="text-2xl font-extrabold text-purple-700 mb-6 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              Request a Deal
+            </h2>
+            <form onSubmit={handleAskSubmit} className="flex flex-col gap-4">
+              <div>
+                <label htmlFor="ask-title" className="block text-purple-800 font-semibold mb-1">What are you looking for?</label>
+                <input
+                  id="ask-title"
+                  name="title"
+                  type="text"
+                  className="w-full rounded-lg border border-purple-200 px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-400 transition shadow-sm text-purple-900 placeholder:text-purple-500"
+                  placeholder="e.g. Best credit card deal"
+                  value={askForm.title}
+                  onChange={handleAskChange}
+                  required
+                  maxLength={80}
+                />
+              </div>
+              <div>
+                <label htmlFor="ask-details" className="block text-purple-800 font-semibold mb-1">Details</label>
+                <textarea
+                  id="ask-details"
+                  name="details"
+                  rows={3}
+                  className="w-full rounded-lg border border-purple-200 px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-400 transition shadow-sm resize-none text-purple-900 placeholder:text-purple-500"
+                  placeholder="Describe what you need or why"
+                  value={askForm.details}
+                  onChange={handleAskChange}
+                  required
+                  maxLength={500}
+                />
+              </div>
+              <div>
+                <label htmlFor="ask-category" className="block text-purple-800 font-semibold mb-1">Category</label>
+                <select
+                  id="ask-category"
+                  name="category"
+                  className="w-full rounded-lg border border-purple-200 px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-400 transition shadow-sm"
+                  value={askForm.category}
+                  onChange={handleAskChange}
+                  required
+                >
+                  <option value="">Select a category</option>
+                  <option value="credit card">Credit Card</option>
+                  <option value="bank / investment">Bank / Investment</option>
+                  <option value="mobile / internet">Mobile / Internet</option>
+                  <option value="shopping / cashback">Shopping / Cashback</option>
+                  <option value="subscriptions">Subscriptions</option>
+                  <option value="travel & transport">Travel & Transport</option>
+                  <option value="health & fitness">Health & Fitness</option>
+                  <option value="education">Education</option>
+                  <option value="apps & tools">Apps & Tools</option>
+                  <option value="others">Others</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="ask-location" className="block text-purple-800 font-semibold mb-1">Location (optional)</label>
+                <input
+                  id="ask-location"
+                  name="location"
+                  type="text"
+                  className="w-full rounded-lg border border-purple-200 px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-400 transition shadow-sm text-purple-900 placeholder:text-purple-500"
+                  placeholder="e.g. New York, Online"
+                  value={askForm.location}
+                  onChange={handleAskChange}
+                  maxLength={100}
+                />
+              </div>
+              <div className="flex gap-3 mt-4">
+                <button
+                  type="submit"
+                  disabled={askLoading}
+                  className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-purple-700 transition disabled:opacity-50"
+                >
+                  {askLoading ? "Submitting..." : "Submit Request"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAskModal(false)}
+                  className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold hover:bg-gray-400 transition"
+                >
+                  Cancel
+                </button>
+              </div>
+              {askErrorMsg && <div className="text-red-600 font-semibold bg-red-50 p-3 rounded">{askErrorMsg}</div>}
+              {askSuccessMsg && <div className="text-green-600 font-semibold bg-green-50 p-3 rounded">{askSuccessMsg}</div>}
+            </form>
+          </div>
+        </div>
+      )}
+
       <footer className="text-center text-xs sm:text-sm text-gray-500 p-4 sm:p-6 mt-4 sm:mt-8">
         © 2025 ShareHub. All rights reserved.
       </footer>
