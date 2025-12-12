@@ -729,13 +729,13 @@ function HomeContent() {
                       onClick={() => setShowShareModal(true)}
                       className="bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-blue-50 transition shadow-lg hover:shadow-xl transform hover:scale-105"
                     >
-                      Share a Deal
+                      + Share a Deal
                     </button>
                     <button
                       onClick={() => setShowAskModal(true)}
                       className="bg-amber-400 text-white px-8 py-3 rounded-lg font-bold hover:bg-amber-500 transition shadow-lg hover:shadow-xl transform hover:scale-105"
                     >
-                      Ask for a Deal
+                      + Ask for a Deal
                     </button>
                   </div>
                 )}
@@ -752,78 +752,87 @@ function HomeContent() {
           </section>
 
         {/* Dashboard Section */}
-        <section className="bg-white p-4 sm:p-8 rounded-2xl shadow-xl max-w-4xl mx-auto border border-blue-100 animate-fade-in">
-          <h2 className="text-xl sm:text-3xl font-extrabold mb-4 sm:mb-6 text-blue-700 flex items-center gap-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              stroke="currentColor"
-              className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z"
-              />
-            </svg>
-            Real Deals from Real People
-          </h2>
+        <section className="bg-gradient-to-br from-blue-50 to-white p-6 sm:p-10 rounded-3xl shadow-2xl max-w-5xl mx-auto border border-blue-100/50 animate-fade-in">
+          <div className="mb-8">
+            <h2 className="text-2xl sm:text-4xl font-extrabold mb-2 text-blue-700 flex items-center gap-3">
+              <div className="bg-blue-100 p-3 rounded-xl">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="h-7 w-7 sm:h-9 sm:w-9 text-blue-600"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z"
+                  />
+                </svg>
+              </div>
+              Real Deals from Real People
+            </h2>
+            <p className="text-gray-600 ml-12 text-sm sm:text-base">Discover and share amazing finds with our community</p>
+          </div>
 
         {user && (
           <>
-            <input
-              type="text"
-              placeholder="Search by keyword..."
-              value={searchCategory}
-              onChange={handleSearchChange}
-              className="w-full sm:w-64 p-2 border rounded focus:ring-2 focus:ring-blue-300 text-blue-900 placeholder:text-blue-500"
-            />
-            <div className="h-4 sm:h-6" />
-            
-            {/* Category Filter Buttons */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              <button
-                onClick={() => setSelectedCategory("")}
-                className={`px-3 py-1 rounded-full text-sm transition ${
-                  selectedCategory === "" 
-                    ? "bg-blue-600 text-white" 
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
-              >
-                All Categories
-              </button>
-              {CATEGORY_LIST.map((cat) => (
+            {/* Search and Filters Container */}
+            <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200 shadow-sm mb-8">
+              <label className="block text-sm font-semibold text-gray-700 mb-3">Search & Filter</label>
+              <input
+                type="text"
+                placeholder="🔍 Search by keyword, category, or title..."
+                value={searchCategory}
+                onChange={handleSearchChange}
+                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-gray-900 placeholder:text-gray-500 transition"
+              />
+              <div className="h-4" />
+              
+              {/* Category Filter Buttons */}
+              <div className="flex flex-wrap gap-2">
                 <button
-                  key={cat.key}
-                  onClick={() => setSelectedCategory(cat.key)}
-                  className={`px-3 py-1 rounded-full text-sm transition flex items-center gap-1 ${
-                    selectedCategory === cat.key
-                      ? "bg-blue-600 text-white" 
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  onClick={() => setSelectedCategory("")}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                    selectedCategory === "" 
+                      ? "bg-blue-600 text-white shadow-md" 
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
                   }`}
                 >
-                  <span>{cat.icon}</span>
-                  <span className="hidden sm:inline">{cat.label}</span>
+                  All Categories
                 </button>
-              ))}
+                {CATEGORY_LIST.map((cat) => (
+                  <button
+                    key={cat.key}
+                    onClick={() => setSelectedCategory(cat.key)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition flex items-center gap-2 ${
+                      selectedCategory === cat.key
+                        ? "bg-blue-600 text-white shadow-md" 
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
+                    }`}
+                  >
+                    <span className="text-base">{cat.icon}</span>
+                    <span className="hidden sm:inline">{cat.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
             </>
           )}
 
           {user ? (
             <>
-              <div className="flex flex-col divide-y divide-gray-200">
+              <div className="space-y-3">
                 {filteredReferrals.slice(0, visibleCount).map((ref) => (
                   <div
                     key={ref.id}
-                    className="flex gap-2 sm:gap-4 py-4 hover:bg-gray-50 transition"
+                    className="flex gap-3 sm:gap-4 p-5 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all"
                   >
                     {/* Voting column */}
-                    <div className="flex flex-col items-center w-10 sm:w-12 shrink-0">
+                    <div className="flex flex-col items-center w-10 sm:w-12 shrink-0 bg-gradient-to-b from-blue-50 to-transparent rounded-lg p-2">
                       <button
-                        className={`p-1 text-gray-500 hover:text-green-600 disabled:opacity-50 
+                        className={`p-1 text-gray-500 hover:text-green-600 disabled:opacity-50 transition
                     ${userVotes[ref.id] === "up" ? "text-green-600 font-bold" : ""}`}
                         onClick={() => handleVote(ref.id, "up")}
                         disabled={voteLoading[ref.id]}
@@ -831,11 +840,11 @@ function HomeContent() {
                       >
                         ▲
                       </button>
-                      <span className="text-xs sm:text-sm font-medium">
+                      <span className="text-xs sm:text-sm font-bold text-gray-700">
                         {(votes[ref.id]?.up || 0) - (votes[ref.id]?.down || 0)}
                       </span>
                       <button
-                        className={`p-1 text-gray-500 hover:text-red-600 disabled:opacity-50 
+                        className={`p-1 text-gray-500 hover:text-red-600 disabled:opacity-50 transition
                     ${userVotes[ref.id] === "down" ? "text-red-600 font-bold" : ""}`}
                         onClick={() => handleVote(ref.id, "down")}
                         disabled={voteLoading[ref.id]}
@@ -848,67 +857,67 @@ function HomeContent() {
                     {/* Post content */}
                     <div className="flex flex-col flex-1">
                       {/* Header */}
-                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
                         <span
-                          className={`text-xs sm:text-sm font-bold uppercase ${ref.type === "ask" ? "text-pink-600" : "text-blue-600"
+                          className={`text-xs sm:text-sm font-bold uppercase px-2 py-1 rounded ${ref.type === "ask" ? "bg-pink-100 text-pink-700" : "bg-blue-100 text-blue-700"
                             }`}
                         >
-                          {ref.type === "ask" ? "[Ask]" : "[Share]"}
+                          {ref.type === "ask" ? "Ask" : "Share"}
                         </span>
-                        <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
+                        <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 flex-1">
                           {ref.title}
                         </h2>
                         {ref.category && (
-                          <span className="px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-700 flex items-center gap-1">
+                          <span className="px-3 py-1 text-xs font-medium rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-gray-700 flex items-center gap-1 border border-blue-200">
                             <span>{(CATEGORIES as Record<string, { icon: string; label: string }>)[ref.category.toLowerCase()]?.icon || "🌀"}</span>
-                            {ref.category.charAt(0).toUpperCase() + ref.category.slice(1)}
+                            <span>{ref.category.charAt(0).toUpperCase() + ref.category.slice(1)}</span>
                           </span>
                         )}
                       </div>
 
                       {/* Body */}
                       {ref.type === "ask" ? (
-                        <div className="text-sm text-gray-700 space-y-1">
-                          {ref.description && <p>{ref.description}</p>}
+                        <div className="text-sm text-gray-700 space-y-2">
+                          {ref.description && <p className="leading-relaxed">{ref.description}</p>}
                           {ref.location && (
-                            <span className="text-gray-500 text-xs">📍 {ref.location}</span>
+                            <span className="inline-block bg-amber-50 border border-amber-200 rounded-lg px-3 py-1 text-gray-700 text-xs">📍 {ref.location}</span>
                           )}
                         </div>
                       ) : (
-                        <div className="text-sm text-gray-700 space-y-1">
+                        <div className="text-sm text-gray-700 space-y-2">
                           {ref.description && (
                             <TruncatedDescription description={ref.description} />
                           )}
-                          {ref.expiration_date && (
-                            <span className="text-xs text-gray-500">
-                              ⏳ Expires:{" "}
-                              {new Date(
-                                ref.expiration_date.replace(" ", "T")
-                              ).toLocaleDateString()}
-                            </span>
-                          )}
-                          {ref.url && (
-                            <a
-                              href={ref.url}
-                              className="inline-flex items-center gap-1 text-blue-600 hover:underline text-xs"
-                            >
-                              🔗{" "}
-                              {(() => {
-                                try {
-                                  const u = new URL(ref.url);
-                                  const path =
-                                    u.pathname.length > 12
-                                      ? u.pathname.slice(0, 12) + "..."
-                                      : u.pathname;
-                                  return `${u.hostname}${path}`;
-                                } catch {
-                                  return ref.url.length > 24
-                                    ? ref.url.slice(0, 24) + "..."
-                                    : ref.url;
-                                }
-                              })()}
-                            </a>
-                          )}
+                          <div className="flex flex-wrap gap-3 text-xs text-gray-600">
+                            {ref.expiration_date && (
+                              <span className="bg-orange-50 border border-orange-200 rounded-lg px-2 py-1">
+                                ⏳ Expires: {new Date(
+                                  ref.expiration_date.replace(" ", "T")
+                                ).toLocaleDateString()}
+                              </span>
+                            )}
+                            {ref.url && (
+                              <a
+                                href={ref.url}
+                                className="inline-flex items-center gap-1 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 text-blue-700 hover:bg-blue-100 transition"
+                              >
+                                🔗 {(() => {
+                                  try {
+                                    const u = new URL(ref.url);
+                                    const path =
+                                      u.pathname.length > 12
+                                        ? u.pathname.slice(0, 12) + "..."
+                                        : u.pathname;
+                                    return `${u.hostname}${path}`;
+                                  } catch {
+                                    return ref.url.length > 24
+                                      ? ref.url.slice(0, 24) + "..."
+                                      : ref.url;
+                                  }
+                                })()}
+                              </a>
+                            )}
+                          </div>
                         </div>
                       )}
 
